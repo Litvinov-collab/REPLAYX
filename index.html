@@ -120,6 +120,12 @@ td{color:#d8dde8}
 @media(max-width:800px){
 body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:1000;box-shadow:20px 0 40px rgba(0,0,0,.35)}.sidebar.open{left:0}.main{height:auto;min-height:100vh}.menu-btn{display:block}.topbar{padding:0 16px}.content{padding:20px 16px 40px}.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}.hero{padding:25px}.hero h1{font-size:29px}.market-status{display:none}}
 @media(max-width:500px){.hero-buttons{flex-direction:column}.btn{width:100%}}
+
+.terminal-chart{display:block;overflow:hidden;padding:0}
+#replayChart{width:100%;height:390px;display:block;cursor:crosshair}
+.chart-hud{position:absolute;left:14px;top:12px;z-index:3;display:flex;gap:8px;pointer-events:none}
+.hud-pill{padding:6px 9px;border-radius:8px;background:rgba(9,12,17,.82);border:1px solid rgba(255,255,255,.08);font-size:10px;color:#aeb7c6}
+.hud-pill strong{color:#fff}.tf-group{display:flex;gap:5px}.tf-btn.active{background:rgba(124,92,255,.18);border-color:rgba(124,92,255,.45);color:#c9c0ff}
 </style>
 </head>
 <body>
@@ -157,7 +163,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <section class="page active" id="dashboard">
 <div class="hero">
 <div class="hero-content">
-<div class="hero-badge">● REPLAYX V0.1 FOUNDATION</div>
+<div class="hero-badge">● REPLAYX V0.2 CHARTS</div>
 <h1>Train the market. <span class="gradient-text">Master your execution.</span></h1>
 <p>Практикуй торговлю на историческом рынке, тестируй стратегии, изучай структуру цены и улучшай дисциплину без риска реальными деньгами.</p>
 <div class="hero-buttons">
@@ -194,9 +200,9 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <div class="replay-terminal">
 <div class="terminal-toolbar">
 <div class="symbol-box"><div class="symbol-icon">₿</div><div><div class="symbol-name">BTC / USD</div><div class="symbol-price">Historical Market</div></div></div>
-<div class="replay-controls"><button class="control-btn">◀</button><button class="control-btn">▶</button><button class="control-btn">+1 Candle</button><button class="control-btn">1x</button></div>
+<div class="replay-controls"><div class="tf-group"><button class="control-btn tf-btn" data-tf="5">5m</button><button class="control-btn tf-btn active" data-tf="15">15m</button><button class="control-btn tf-btn" data-tf="60">1H</button></div><button class="control-btn" id="chartReset">Reset</button></div>
 </div>
-<div class="terminal-chart"><div class="chart-message"><strong>Replay Engine</strong>Исторический график появится на этапе V0.2</div></div>
+<div class="terminal-chart"><div class="chart-hud"><div class="hud-pill"><strong>BTCUSD</strong> · <span id="hudTf">15m</span></div><div class="hud-pill" id="hudOhlc">O — H — L — C —</div></div><canvas id="replayChart"></canvas></div>
 </div>
 <div class="grid grid-3 section">
 <div class="card feature-card"><div class="feature-icon">↗</div><h3>LONG</h3><p>Открытие виртуальной позиции в рост.</p></div>
@@ -317,7 +323,17 @@ initializeStorage();
 createDashboardChart();
 const savedPage=localStorage.getItem("replayx-page");
 if(savedPage&&document.getElementById(savedPage))openPage(savedPage)}
+
+const RX={data:[],offset:0,visible:70,tf:15,drag:false,lastX:0};
+function rnd(seed){let s=seed>>>0;return()=>((s=(s*1664525+1013904223)>>>0)/4294967296)}
+function candles(tf){let r=rnd(tf*92821+17),a=[],p=78200,t=Date.UTC(2026,7,10)/1000;for(let i=0;i<420;i++){let o=p,c=o+(i<135?-5.5:i<270?7:2)+Math.sin(i/18)*4+(r()-.5)*145;a.push({time:t,open:o,high:Math.max(o,c)+25+r()*105,low:Math.min(o,c)-25-r()*105,close:c});p=c;t+=tf*60}return a}
+function fp(v){return Math.round(v).toLocaleString("en-US")}
+function geom(){let cv=document.getElementById("replayChart");if(!cv)return null,d=Math.max(1,devicePixelRatio||1),w=cv.width/d,h=cv.height/d,L=10,R=68,T=10,B=28,s=RX.data.slice(RX.offset,RX.offset+RX.visible);if(!s.length)return null;let mn=Math.min(...s.map(x=>x.low)),mx=Math.max(...s.map(x=>x.high)),pad=(mx-mn)*.08||1;mn-=pad;mx+=pad;let pw=w-L-R,ph=h-T-B,step=pw/s.length,y=v=>T+(mx-v)/(mx-mn)*ph;return{cv,d,w,h,L,T,s,mn,mx,pw,ph,step,y}}
+function draw(cross){let g=geom();if(!g)return;let{cv,d,w,h,L,T,s,mn,mx,pw,ph,step,y}=g,c=cv.getContext("2d");c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,w,h);c.font="10px system-ui";c.fillStyle="#6f798b";c.strokeStyle="rgba(255,255,255,.055)";for(let i=0;i<=6;i++){let yy=T+ph*i/6;c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.fillText(fp(mx-(mx-mn)*i/6),L+pw+8,yy+3)}for(let i=0;i<=6;i++){let xx=L+pw*i/6;c.beginPath();c.moveTo(xx,T);c.lineTo(xx,T+ph);c.stroke()}let bw=Math.max(2,Math.min(11,step*.62));s.forEach((x,i)=>{let xx=L+step*i+step/2,col=x.close>=x.open?"#39d98a":"#ff5c72";c.strokeStyle=c.fillStyle=col;c.beginPath();c.moveTo(xx,y(x.high));c.lineTo(xx,y(x.low));c.stroke();let a=y(x.open),b=y(x.close);c.fillRect(xx-bw/2,Math.min(a,b),bw,Math.max(1.5,Math.abs(a-b)))});let last=s[s.length-1];if(last){let yy=y(last.close),col=last.close>=last.open?"#39d98a":"#ff5c72";c.strokeStyle=col;c.setLineDash([4,4]);c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.setLineDash([]);c.fillStyle=col;c.fillRect(L+pw+3,yy-10,62,20);c.fillStyle="#07100c";c.font="bold 10px system-ui";c.fillText(fp(last.close),L+pw+8,yy+3);document.querySelector(".symbol-price").textContent=fp(last.close)+" · Historical"}if(cross){c.strokeStyle="rgba(220,225,235,.35)";c.setLineDash([3,4]);c.beginPath();c.moveTo(cross.x,T);c.lineTo(cross.x,T+ph);c.stroke();c.beginPath();c.moveTo(L,cross.y);c.lineTo(L+pw,cross.y);c.stroke();c.setLineDash([])}}
+function initReplayChart(){let cv=document.getElementById("replayChart");if(!cv)return;RX.data=candles(RX.tf);RX.offset=RX.data.length-RX.visible;let resize=()=>{let r=cv.getBoundingClientRect(),d=Math.max(1,devicePixelRatio||1);cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);draw()};new ResizeObserver(resize).observe(cv);resize();cv.addEventListener("wheel",e=>{e.preventDefault();let old=RX.visible;RX.visible=Math.max(25,Math.min(150,old+(e.deltaY>0?8:-8)));RX.offset=Math.max(0,Math.min(RX.data.length-RX.visible,RX.offset-Math.floor((RX.visible-old)/2)));draw()},{passive:false});cv.addEventListener("mousedown",e=>{RX.drag=true;RX.lastX=e.clientX});window.addEventListener("mouseup",()=>RX.drag=false);window.addEventListener("mousemove",e=>{if(!RX.drag)return;let g=geom();if(!g)return;let delta=e.clientX-RX.lastX;if(Math.abs(delta)>=g.step){RX.offset=Math.max(0,Math.min(RX.data.length-RX.visible,RX.offset+Math.round(-delta/g.step)));RX.lastX=e.clientX;draw()}});cv.addEventListener("mousemove",e=>{let g=geom(),r=cv.getBoundingClientRect();if(!g)return;let x=e.clientX-r.left,yy=e.clientY-r.top;if(x<g.L||x>g.L+g.pw||yy<g.T||yy>g.T+g.ph)return draw();let i=Math.max(0,Math.min(g.s.length-1,Math.floor((x-g.L)/g.step))),z=g.s[i];document.getElementById("hudOhlc").textContent=`O ${fp(z.open)} H ${fp(z.high)} L ${fp(z.low)} C ${fp(z.close)}`;draw({x:g.L+g.step*i+g.step/2,y:yy})});cv.addEventListener("mouseleave",()=>draw());document.getElementById("chartReset").onclick=()=>{RX.visible=70;RX.offset=RX.data.length-70;draw()};document.querySelectorAll(".tf-btn").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tf-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active");RX.tf=+b.dataset.tf;document.getElementById("hudTf").textContent=RX.tf===60?"1H":RX.tf+"m";RX.data=candles(RX.tf);RX.visible=70;RX.offset=RX.data.length-70;draw()})}
+
 loadApp();
+initReplayChart();
 </script>
 </body>
 </html>
