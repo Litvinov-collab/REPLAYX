@@ -198,7 +198,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <section class="page active" id="dashboard">
 <div class="hero">
 <div class="hero-content">
-<div class="hero-badge">● REPLAYX V0.5 ANALYTICS</div>
+<div class="hero-badge">● REPLAYX V0.5 ANALYTICS · STABLE</div>
 <h1>Train the market. <span class="gradient-text">Master your execution.</span></h1>
 <p>Практикуй торговлю на историческом рынке, тестируй стратегии, изучай структуру цены и улучшай дисциплину без риска реальными деньгами.</p>
 <div class="hero-buttons">
@@ -387,8 +387,14 @@ function getTrades(){
 let d=getReplayData();
 return Array.isArray(d.trades)?d.trades:[];
 }
+function safeRR(t){
+let rr=Number(t.rr);
+return Number.isFinite(rr)&&rr>=0.1&&rr<=20?rr:null;
+}
 function tradeR(t){
-return t.result==="TP"?Number(t.rr||0):-1;
+let rr=safeRR(t);
+if(t.result==="TP")return rr===null?0:rr;
+return t.result==="SL"?-1:0;
 }
 function streakStats(trades){
 let ordered=[...trades].reverse(),bestW=0,bestL=0,w=0,l=0;
@@ -407,8 +413,9 @@ return{bestW,bestL,current,label};
 function analyticsStats(){
 let trades=getTrades(),wins=trades.filter(t=>t.result==="TP"),losses=trades.filter(t=>t.result==="SL");
 let total=trades.length,winRate=total?wins.length/total*100:0;
-let avgRR=total?trades.reduce((a,t)=>a+Number(t.rr||0),0)/total:0;
-let grossWin=wins.reduce((a,t)=>a+Number(t.rr||0),0),grossLoss=losses.length;
+let validRR=trades.map(safeRR).filter(v=>v!==null);
+let avgRR=validRR.length?validRR.reduce((a,v)=>a+v,0)/validRR.length:0;
+let grossWin=wins.map(safeRR).filter(v=>v!==null).reduce((a,v)=>a+v,0),grossLoss=losses.length;
 let pf=grossLoss?grossWin/grossLoss:(grossWin>0?Infinity:0);
 let netR=trades.reduce((a,t)=>a+tradeR(t),0);
 return{trades,wins,losses,total,winRate,avgRR,grossWin,grossLoss,pf,netR,...streakStats(trades)};
@@ -538,10 +545,15 @@ calculateDraftRR();
 }
 function calculateDraftRR(){
 let dir=RX.draftDirection,z=currentCandle(),sl=+document.getElementById("tradeSL").value,tp=+document.getElementById("tradeTP").value;
+let riskEl=document.getElementById("tradeRisk"),rewardEl=document.getElementById("tradeReward"),rrEl=document.getElementById("tradeRR");
 if(!dir||!z||!sl||!tp){
-document.getElementById("tradeRisk").textContent="—";
-document.getElementById("tradeReward").textContent="—";
-document.getElementById("tradeRR").textContent="—";return;
+riskEl.textContent="—";rewardEl.textContent="—";rrEl.textContent="—";return;
+}
+let entry=z.close,risk=Math.abs(entry-sl),reward=Math.abs(tp-entry),rr=risk>0?reward/risk:0;
+riskEl.textContent=fp(risk);
+rewardEl.textContent=fp(reward);
+rrEl.textContent=risk>0?"1:"+rr.toFixed(2):"—";
+rrEl.classList.toggle("negative",rr>20||rr<0.1);
 }
 let entry=z.close,risk=Math.abs(entry-sl),reward=Math.abs(tp-entry);
 document.getElementById("tradeRisk").textContent=fp(risk);
@@ -567,12 +579,29 @@ document.getElementById("tradeMessage").textContent="Сначала выбери
 function openTrade(){
 if(RX.trade){document.getElementById("tradeMessage").textContent="Сначала заверши текущую позицию.";return}
 let dir=RX.draftDirection,z=currentCandle(),sl=+document.getElementById("tradeSL").value,tp=+document.getElementById("tradeTP").value;
-if(!dir||!z||!sl||!tp){document.getElementById("tradeMessage").textContent="Выбери LONG/SHORT и укажи SL и TP.";return}
+let msg=document.getElementById("tradeMessage");
+if(!dir||!z||!Number.isFinite(sl)||!Number.isFinite(tp)||sl<=0||tp<=0){
+msg.textContent="Выбери LONG/SHORT и укажи корректные SL и TP.";return;
+}
 let entry=z.close;
 let valid=dir==="LONG"?(sl<entry&&tp>entry):(sl>entry&&tp<entry);
 if(!valid){
-document.getElementById("tradeMessage").textContent=dir==="LONG"?"Для LONG: SL должен быть ниже Entry, TP выше Entry.":"Для SHORT: SL должен быть выше Entry, TP ниже Entry.";
+msg.textContent=dir==="LONG"?"Для LONG: SL должен быть ниже Entry, TP выше Entry.":"Для SHORT: SL должен быть выше Entry, TP ниже Entry.";
 return;
+}
+let risk=Math.abs(entry-sl),reward=Math.abs(tp-entry);
+if(risk<1){msg.textContent="Stop Loss находится слишком близко к Entry.";return}
+let rr=reward/risk;
+if(!Number.isFinite(rr)||rr<0.1||rr>20){
+msg.textContent="Некорректный RR. Допустимый диапазон для симулятора: от 1:0.10 до 1:20.00.";
+return;
+}
+RX.trade={direction:dir,entry,sl,tp,rr,openedAt:RX.reveal-1,status:"OPEN"};
+document.getElementById("tradeState").textContent=dir+" · OPEN";
+msg.className="trade-message";
+msg.textContent=`Позиция открыта по ${fp(entry)} · RR 1:${rr.toFixed(2)}`;
+document.getElementById("openTradeBtn").disabled=true;
+draw();
 }
 let risk=Math.abs(entry-sl),reward=Math.abs(tp-entry);
 RX.trade={direction:dir,entry,sl,tp,rr:reward/risk,openedAt:RX.reveal-1,status:"OPEN"};
@@ -636,7 +665,7 @@ function renderJournal(){
 let body=document.getElementById("journalBody");if(!body)return;
 let data=JSON.parse(localStorage.getItem("replayx-data")||'{}'),trades=Array.isArray(data.trades)?data.trades:[];
 if(!trades.length){body.innerHTML='<tr><td colspan="6" class="empty-row">Сделок пока нет. Начни Market Replay.</td></tr>';return}
-body.innerHTML=trades.map(t=>`<tr><td>${new Date(t.date).toLocaleDateString("ru-RU")}</td><td>${t.symbol}</td><td class="${t.direction==="LONG"?"positive":"negative"}">${t.direction}</td><td>1:${Number(t.rr).toFixed(2)}</td><td class="${t.result==="TP"?"positive":"negative"}">${t.result}</td><td>Replay ${t.timeframe===60?"1H":t.timeframe+"m"}</td></tr>`).join("");
+body.innerHTML=trades.map(t=>`<tr><td>${new Date(t.date).toLocaleDateString("ru-RU")}</td><td>${t.symbol}</td><td class="${t.direction==="LONG"?"positive":"negative"}">${t.direction}</td><td>${safeRR(t)===null?"Invalid":("1:"+safeRR(t).toFixed(2))}</td><td class="${t.result==="TP"?"positive":"negative"}">${t.result}</td><td>Replay ${t.timeframe===60?"1H":t.timeframe+"m"}</td></tr>`).join("");
 }
 
 function replayDelay(){return Math.max(90,650/RX.speed)}
