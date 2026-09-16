@@ -198,7 +198,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <section class="page active" id="dashboard">
 <div class="hero">
 <div class="hero-content">
-<div class="hero-badge">● REPLAYX V0.4 TRADING ENGINE</div>
+<div class="hero-badge">● REPLAYX V0.5 ANALYTICS</div>
 <h1>Train the market. <span class="gradient-text">Master your execution.</span></h1>
 <p>Практикуй торговлю на историческом рынке, тестируй стратегии, изучай структуру цены и улучшай дисциплину без риска реальными деньгами.</p>
 <div class="hero-buttons">
@@ -208,16 +208,16 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 </div>
 </div>
 <div class="grid grid-4">
-<div class="card stat-card"><div class="card-label">Total Sessions</div><div class="stat-value">0</div><div class="stat-footer">Начни первую тренировку</div></div>
-<div class="card stat-card"><div class="card-label">Win Rate</div><div class="stat-value">0%</div><div class="stat-footer">Нет завершённых сделок</div></div>
-<div class="card stat-card"><div class="card-label">Average RR</div><div class="stat-value">0.00</div><div class="stat-footer">Risk / Reward</div></div>
-<div class="card stat-card"><div class="card-label">Discipline</div><div class="stat-value">100%</div><div class="stat-footer positive">Ready to train</div></div>
+<div class="card stat-card"><div class="card-label">Total Trades</div><div class="stat-value" id="dashTotalTrades">0</div><div class="stat-footer">Завершённые Replay-сделки</div></div>
+<div class="card stat-card"><div class="card-label">Win Rate</div><div class="stat-value" id="dashWinRate">0%</div><div class="stat-footer" id="dashWinFooter">Нет завершённых сделок</div></div>
+<div class="card stat-card"><div class="card-label">Average RR</div><div class="stat-value" id="dashAvgRR">0.00</div><div class="stat-footer">Risk / Reward</div></div>
+<div class="card stat-card"><div class="card-label">Net R</div><div class="stat-value" id="dashNetR">0.00R</div><div class="stat-footer" id="dashNetFooter">Replay performance</div></div>
 </div>
 <div class="section">
 <div class="grid grid-2">
 <div class="card chart-card">
 <div class="section-header"><div><div class="section-title">Replay Activity</div><div class="section-subtitle">Training performance</div></div><span style="font-size:11px;color:var(--muted)">BTCUSD</span></div>
-<div class="fake-chart" id="dashboardChart"></div>
+<canvas id="dashboardChart" style="width:100%;height:240px;display:block"></canvas>
 </div>
 <div class="card">
 <div class="section-header"><div><div class="section-title">Recent Activity</div><div class="section-subtitle">Последние действия</div></div></div>
@@ -315,12 +315,17 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <section class="page" id="analytics">
 <div class="page-heading"><h1>Analytics</h1><p>Анализ результатов тренировок и стратегий.</p></div>
 <div class="grid grid-4">
-<div class="card stat-card"><div class="card-label">Win Rate</div><div class="stat-value">0%</div></div>
-<div class="card stat-card"><div class="card-label">Profit Factor</div><div class="stat-value">0.00</div></div>
-<div class="card stat-card"><div class="card-label">Average RR</div><div class="stat-value">0.00</div></div>
-<div class="card stat-card"><div class="card-label">Total Trades</div><div class="stat-value">0</div></div>
+<div class="card stat-card"><div class="card-label">Win Rate</div><div class="stat-value" id="anWinRate">0%</div><div class="stat-footer" id="anRecord">0 TP / 0 SL</div></div>
+<div class="card stat-card"><div class="card-label">Profit Factor</div><div class="stat-value" id="anPF">0.00</div><div class="stat-footer">Gross R win / Gross R loss</div></div>
+<div class="card stat-card"><div class="card-label">Average RR</div><div class="stat-value" id="anAvgRR">0.00</div><div class="stat-footer">Planned Risk / Reward</div></div>
+<div class="card stat-card"><div class="card-label">Total Trades</div><div class="stat-value" id="anTotal">0</div><div class="stat-footer" id="anNetR">Net 0.00R</div></div>
 </div>
-<div class="card section chart-card"><div class="section-title">Equity Curve</div><div class="chart-message" style="margin-top:100px;"><strong>No trading data</strong>График появится после первых сделок.</div></div>
+<div class="grid grid-3 section">
+<div class="card stat-card"><div class="card-label">Best Win Streak</div><div class="stat-value" id="anWinStreak">0</div></div>
+<div class="card stat-card"><div class="card-label">Worst Loss Streak</div><div class="stat-value" id="anLossStreak">0</div></div>
+<div class="card stat-card"><div class="card-label">Current Streak</div><div class="stat-value" id="anCurrentStreak">0</div><div class="stat-footer" id="anCurrentLabel">No trades</div></div>
+</div>
+<div class="card section chart-card" id="equityCard"><div class="section-header"><div><div class="section-title">Equity Curve</div><div class="section-subtitle">Cumulative performance measured in R</div></div><span id="equityValue" style="font-size:12px;color:var(--muted)">0.00R</span></div><canvas id="equityChart" style="width:100%;height:245px;display:block"></canvas></div>
 </section>
 <section class="page" id="challenges">
 <div class="page-heading"><h1>Challenges</h1><p>Испытания для развития навыков и дисциплины.</p></div>
@@ -369,27 +374,100 @@ if(pageInfo[pageId]){topTitle.textContent=pageInfo[pageId].title;topSubtitle.tex
 localStorage.setItem("replayx-page",pageId);
 if(window.innerWidth<=800)sidebar.classList.remove("open");
 if(pageId==="replay") requestAnimationFrame(()=>requestAnimationFrame(resizeReplayChart));
+if(pageId==="dashboard"||pageId==="analytics") requestAnimationFrame(()=>requestAnimationFrame(updateAnalytics));
 }
 navItems.forEach(item=>item.addEventListener("click",()=>openPage(item.dataset.page)));
 menuBtn.addEventListener("click",()=>sidebar.classList.toggle("open"));
 document.querySelectorAll(".toggle").forEach(toggle=>toggle.addEventListener("click",()=>toggle.classList.toggle("active")));
-function createDashboardChart(){
-const chart=document.getElementById("dashboardChart");
-if(!chart)return;
-chart.innerHTML="";
-let trend=80;
-for(let i=0;i<70;i++){
-const candle=document.createElement("div");
-const movement=Math.random()*35-15;
-trend+=movement;
-if(trend<30)trend=30;
-if(trend>210)trend=210;
-candle.className="candle "+(movement>=0?"green":"red");
-candle.style.height=trend+"px";
-chart.appendChild(candle)}}
+function createDashboardChart(){updateAnalytics()}
+function getReplayData(){
+try{return JSON.parse(localStorage.getItem("replayx-data")||"{}")}catch(e){return{}}
+}
+function getTrades(){
+let d=getReplayData();
+return Array.isArray(d.trades)?d.trades:[];
+}
+function tradeR(t){
+return t.result==="TP"?Number(t.rr||0):-1;
+}
+function streakStats(trades){
+let ordered=[...trades].reverse(),bestW=0,bestL=0,w=0,l=0;
+ordered.forEach(t=>{
+if(t.result==="TP"){w++;l=0;bestW=Math.max(bestW,w)}
+else if(t.result==="SL"){l++;w=0;bestL=Math.max(bestL,l)}
+});
+let current=0,label="No trades";
+if(ordered.length){
+let last=ordered[ordered.length-1].result;
+label=last==="TP"?"Winning streak":"Losing streak";
+for(let i=ordered.length-1;i>=0&&ordered[i].result===last;i--)current++;
+}
+return{bestW,bestL,current,label};
+}
+function analyticsStats(){
+let trades=getTrades(),wins=trades.filter(t=>t.result==="TP"),losses=trades.filter(t=>t.result==="SL");
+let total=trades.length,winRate=total?wins.length/total*100:0;
+let avgRR=total?trades.reduce((a,t)=>a+Number(t.rr||0),0)/total:0;
+let grossWin=wins.reduce((a,t)=>a+Number(t.rr||0),0),grossLoss=losses.length;
+let pf=grossLoss?grossWin/grossLoss:(grossWin>0?Infinity:0);
+let netR=trades.reduce((a,t)=>a+tradeR(t),0);
+return{trades,wins,losses,total,winRate,avgRR,grossWin,grossLoss,pf,netR,...streakStats(trades)};
+}
+function fitCanvas(canvas){
+let r=canvas.getBoundingClientRect(),d=Math.max(1,window.devicePixelRatio||1);
+if(r.width<5||r.height<5)return null;
+canvas.width=Math.round(r.width*d);canvas.height=Math.round(r.height*d);
+let c=canvas.getContext("2d");c.setTransform(d,0,0,d,0,0);
+return{c,w:r.width,h:r.height};
+}
+function drawEquityCanvas(id,trades){
+let cv=document.getElementById(id);if(!cv)return;
+let fit=fitCanvas(cv);if(!fit)return;
+let{c,w,h}=fit,L=38,R=12,T=16,B=26;
+c.clearRect(0,0,w,h);
+let ordered=[...trades].reverse(),points=[0],v=0;
+ordered.forEach(t=>{v+=tradeR(t);points.push(v)});
+let mn=Math.min(...points,0),mx=Math.max(...points,0);
+if(mx===mn){mx+=1;mn-=1}else{let pad=(mx-mn)*.15;mx+=pad;mn-=pad}
+let pw=w-L-R,ph=h-T-B,x=i=>L+(points.length<=1?0:pw*i/(points.length-1)),y=n=>T+(mx-n)/(mx-mn)*ph;
+c.font="10px system-ui";c.strokeStyle="rgba(255,255,255,.06)";c.fillStyle="#687386";
+for(let i=0;i<=4;i++){let yy=T+ph*i/4;c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.fillText((mx-(mx-mn)*i/4).toFixed(1)+"R",2,yy+3)}
+let zero=y(0);c.strokeStyle="rgba(255,255,255,.16)";c.beginPath();c.moveTo(L,zero);c.lineTo(L+pw,zero);c.stroke();
+if(points.length>1){
+c.strokeStyle="#9b87ff";c.lineWidth=2;c.beginPath();
+points.forEach((p,i)=>i?c.lineTo(x(i),y(p)):c.moveTo(x(i),y(p)));c.stroke();
+points.forEach((p,i)=>{c.fillStyle=i&&ordered[i-1]?.result==="SL"?"#ff5c72":"#39d98a";c.beginPath();c.arc(x(i),y(p),i?3:2,0,Math.PI*2);c.fill()});
+}else{
+c.fillStyle="#7e899b";c.font="12px system-ui";c.textAlign="center";c.fillText("No trading data",L+pw/2,T+ph/2);c.textAlign="left";
+}
+}
+function updateAnalytics(){
+let s=analyticsStats();
+let set=(id,val)=>{let e=document.getElementById(id);if(e)e.textContent=val};
+set("dashTotalTrades",s.total);
+set("dashWinRate",s.winRate.toFixed(0)+"%");
+set("dashAvgRR",s.avgRR.toFixed(2));
+set("dashNetR",(s.netR>=0?"+":"")+s.netR.toFixed(2)+"R");
+set("dashWinFooter",s.total?`${s.wins.length} TP / ${s.losses.length} SL`:"Нет завершённых сделок");
+set("dashNetFooter",s.netR>0?"Positive performance":s.netR<0?"Negative performance":"Replay performance");
+let dn=document.getElementById("dashNetR");if(dn){dn.classList.toggle("positive",s.netR>0);dn.classList.toggle("negative",s.netR<0)}
+set("anWinRate",s.winRate.toFixed(0)+"%");
+set("anRecord",`${s.wins.length} TP / ${s.losses.length} SL`);
+set("anPF",s.pf===Infinity?"∞":s.pf.toFixed(2));
+set("anAvgRR",s.avgRR.toFixed(2));
+set("anTotal",s.total);
+set("anNetR","Net "+(s.netR>=0?"+":"")+s.netR.toFixed(2)+"R");
+set("anWinStreak",s.bestW);
+set("anLossStreak",s.bestL);
+set("anCurrentStreak",s.current);
+set("anCurrentLabel",s.label);
+set("equityValue",(s.netR>=0?"+":"")+s.netR.toFixed(2)+"R");
+requestAnimationFrame(()=>{drawEquityCanvas("equityChart",s.trades);drawEquityCanvas("dashboardChart",s.trades)});
+}
+
 function initializeStorage(){
 if(!localStorage.getItem("replayx-initialized")){
-const defaultData={version:"0.4",trades:[],strategies:[],sessions:0,progress:{},settings:{offline:true,autosave:true,sound:false}};
+const defaultData={version:"0.5",trades:[],strategies:[],sessions:0,progress:{},settings:{offline:true,autosave:true,sound:false}};
 localStorage.setItem("replayx-data",JSON.stringify(defaultData));
 localStorage.setItem("replayx-initialized","true")}}
 function loadApp(){
@@ -523,6 +601,7 @@ timeframe:RX.tf
 data.sessions=(data.sessions||0)+1;
 localStorage.setItem("replayx-data",JSON.stringify(data));
 renderJournal();
+updateAnalytics();
 }
 function finishTrade(result,price){
 if(!RX.trade)return;
@@ -615,7 +694,7 @@ RX.startReveal=Math.min(120,RX.data.length);
 RX.reveal=RX.startReveal;
 keepReplayAtEdge();
 
-window.addEventListener("resize",resizeReplayChart);
+window.addEventListener("resize",()=>{resizeReplayChart();updateAnalytics()});
 if("ResizeObserver" in window)new ResizeObserver(()=>resizeReplayChart()).observe(cv);
 
 cv.addEventListener("wheel",e=>{
@@ -690,6 +769,7 @@ if(RX.trade){document.getElementById("tradeMessage").textContent="Открыту
 clearTradeDraft();
 };
 renderJournal();
+updateAnalytics();
 updateReplayUI();
 requestAnimationFrame(()=>requestAnimationFrame(resizeReplayChart));
 }
