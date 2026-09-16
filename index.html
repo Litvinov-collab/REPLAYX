@@ -140,6 +140,27 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 .replay-progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#a08cff);transition:width .15s linear}
 @media(max-width:700px){.replay-engine{align-items:flex-start;flex-direction:column}.engine-right{width:100%}}
 
+
+.trade-card{cursor:pointer;user-select:none}
+.trade-card:hover{transform:translateY(-2px);border-color:rgba(124,92,255,.55)}
+.trade-card.selected{border-color:var(--accent);box-shadow:0 0 0 1px rgba(124,92,255,.25),0 12px 35px rgba(124,92,255,.10)}
+.trade-panel{margin-top:18px;background:#0c1017;border:1px solid var(--border);border-radius:16px;padding:18px}
+.trade-panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}
+.trade-panel-title{font-size:14px;font-weight:800}
+.trade-state{font-size:11px;color:var(--muted);padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:#111620}
+.trade-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.trade-field label{display:block;font-size:10px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.8px}
+.trade-field input{width:100%;height:40px;border:1px solid var(--border);background:#111620;color:#fff;border-radius:9px;padding:0 11px;outline:none;font:600 12px system-ui}
+.trade-field input:focus{border-color:rgba(124,92,255,.65)}
+.trade-actions{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+.trade-info{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:13px;font-size:11px;color:var(--muted)}
+.trade-info strong{color:#fff}
+.trade-message{margin-top:12px;font-size:12px;min-height:18px;color:var(--muted)}
+.trade-result-win{color:var(--green)!important}
+.trade-result-loss{color:var(--red)!important}
+@media(max-width:900px){.trade-form{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:550px){.trade-form{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -177,7 +198,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <section class="page active" id="dashboard">
 <div class="hero">
 <div class="hero-content">
-<div class="hero-badge">● REPLAYX V0.3 REPLAY ENGINE</div>
+<div class="hero-badge">● REPLAYX V0.4 TRADING ENGINE</div>
 <h1>Train the market. <span class="gradient-text">Master your execution.</span></h1>
 <p>Практикуй торговлю на историческом рынке, тестируй стратегии, изучай структуру цены и улучшай дисциплину без риска реальными деньгами.</p>
 <div class="hero-buttons">
@@ -234,9 +255,31 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 </div>
 </div>
 <div class="grid grid-3 section">
-<div class="card feature-card"><div class="feature-icon">↗</div><h3>LONG</h3><p>Открытие виртуальной позиции в рост.</p></div>
-<div class="card feature-card"><div class="feature-icon">↘</div><h3>SHORT</h3><p>Открытие виртуальной позиции в падение.</p></div>
+<div class="card feature-card trade-card" id="longCard" data-direction="LONG"><div class="feature-icon">↗</div><h3>LONG</h3><p>Открытие виртуальной позиции в рост.</p></div>
+<div class="card feature-card trade-card" id="shortCard" data-direction="SHORT"><div class="feature-icon">↘</div><h3>SHORT</h3><p>Открытие виртуальной позиции в падение.</p></div>
 <div class="card feature-card"><div class="feature-icon">1:2</div><h3>Risk Management</h3><p>Entry, Stop Loss, Take Profit и автоматический RR.</p></div>
+</div>
+<div class="trade-panel">
+  <div class="trade-panel-head">
+    <div><div class="trade-panel-title">Trading Engine</div><div class="section-subtitle">Выбери LONG или SHORT, затем задай SL и TP.</div></div>
+    <div class="trade-state" id="tradeState">NO POSITION</div>
+  </div>
+  <div class="trade-form">
+    <div class="trade-field"><label>Direction</label><input id="tradeDirection" value="—" readonly></div>
+    <div class="trade-field"><label>Entry</label><input id="tradeEntry" value="—" readonly></div>
+    <div class="trade-field"><label>Stop Loss</label><input id="tradeSL" type="number" step="1" placeholder="Например 78000"></div>
+    <div class="trade-field"><label>Take Profit</label><input id="tradeTP" type="number" step="1" placeholder="Например 79000"></div>
+  </div>
+  <div class="trade-info">
+    <span>Risk: <strong id="tradeRisk">—</strong></span>
+    <span>Reward: <strong id="tradeReward">—</strong></span>
+    <span>RR: <strong id="tradeRR">—</strong></span>
+  </div>
+  <div class="trade-actions">
+    <button class="btn btn-primary" id="openTradeBtn">Open Position</button>
+    <button class="btn btn-secondary" id="cancelTradeBtn">Cancel</button>
+  </div>
+  <div class="trade-message" id="tradeMessage">Сначала выбери направление сделки.</div>
 </div>
 </section>
 <section class="page" id="practice">
@@ -346,7 +389,7 @@ candle.style.height=trend+"px";
 chart.appendChild(candle)}}
 function initializeStorage(){
 if(!localStorage.getItem("replayx-initialized")){
-const defaultData={version:"0.3",trades:[],strategies:[],sessions:0,progress:{},settings:{offline:true,autosave:true,sound:false}};
+const defaultData={version:"0.4",trades:[],strategies:[],sessions:0,progress:{},settings:{offline:true,autosave:true,sound:false}};
 localStorage.setItem("replayx-data",JSON.stringify(defaultData));
 localStorage.setItem("replayx-initialized","true")}}
 function loadApp(){
@@ -355,7 +398,7 @@ createDashboardChart();
 const savedPage=localStorage.getItem("replayx-page");
 if(savedPage&&document.getElementById(savedPage))openPage(savedPage)}
 
-const RX={data:[],offset:0,visible:70,tf:15,drag:false,lastX:0,reveal:120,startReveal:120,playing:false,speed:1,timer:null};
+const RX={data:[],offset:0,visible:70,tf:15,drag:false,lastX:0,reveal:120,startReveal:120,playing:false,speed:1,timer:null,trade:null,draftDirection:null};
 function rnd(seed){let s=seed>>>0;return()=>((s=(s*1664525+1013904223)>>>0)/4294967296)}
 function candles(tf){let r=rnd(tf*92821+17),a=[],p=78200,t=Date.UTC(2026,7,10)/1000;for(let i=0;i<420;i++){let o=p,c=o+(i<135?-5.5:i<270?7:2)+Math.sin(i/18)*4+(r()-.5)*145;a.push({time:t,open:o,high:Math.max(o,c)+25+r()*105,low:Math.min(o,c)-25-r()*105,close:c});p=c;t+=tf*60}return a}
 function fp(v){return Math.round(v).toLocaleString("en-US")}
@@ -375,7 +418,20 @@ let pw=Math.max(1,w-L-R),ph=Math.max(1,h-T-B),step=pw/s.length;
 let y=v=>T+(mx-v)/(mx-mn)*ph;
 return{cv,d,w,h,L,T,s,mn,mx,pw,ph,step,y};
 }
-function draw(cross){let g=geom();if(!g)return;let{cv,d,w,h,L,T,s,mn,mx,pw,ph,step,y}=g,c=cv.getContext("2d");c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,w,h);c.font="10px system-ui";c.fillStyle="#6f798b";c.strokeStyle="rgba(255,255,255,.055)";for(let i=0;i<=6;i++){let yy=T+ph*i/6;c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.fillText(fp(mx-(mx-mn)*i/6),L+pw+8,yy+3)}for(let i=0;i<=6;i++){let xx=L+pw*i/6;c.beginPath();c.moveTo(xx,T);c.lineTo(xx,T+ph);c.stroke()}let bw=Math.max(2,Math.min(11,step*.62));s.forEach((x,i)=>{let xx=L+step*i+step/2,col=x.close>=x.open?"#39d98a":"#ff5c72";c.strokeStyle=c.fillStyle=col;c.beginPath();c.moveTo(xx,y(x.high));c.lineTo(xx,y(x.low));c.stroke();let a=y(x.open),b=y(x.close);c.fillRect(xx-bw/2,Math.min(a,b),bw,Math.max(1.5,Math.abs(a-b)))});let last=s[s.length-1];if(last){let yy=y(last.close),col=last.close>=last.open?"#39d98a":"#ff5c72";c.strokeStyle=col;c.setLineDash([4,4]);c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.setLineDash([]);c.fillStyle=col;c.fillRect(L+pw+3,yy-10,62,20);c.fillStyle="#07100c";c.font="bold 10px system-ui";c.fillText(fp(last.close),L+pw+8,yy+3);document.querySelector(".symbol-price").textContent=fp(last.close)+" · Historical"}if(cross){c.strokeStyle="rgba(220,225,235,.35)";c.setLineDash([3,4]);c.beginPath();c.moveTo(cross.x,T);c.lineTo(cross.x,T+ph);c.stroke();c.beginPath();c.moveTo(L,cross.y);c.lineTo(L+pw,cross.y);c.stroke();c.setLineDash([])}}
+function draw(cross){let g=geom();if(!g)return;let{cv,d,w,h,L,T,s,mn,mx,pw,ph,step,y}=g,c=cv.getContext("2d");c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,w,h);c.font="10px system-ui";c.fillStyle="#6f798b";c.strokeStyle="rgba(255,255,255,.055)";for(let i=0;i<=6;i++){let yy=T+ph*i/6;c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.fillText(fp(mx-(mx-mn)*i/6),L+pw+8,yy+3)}for(let i=0;i<=6;i++){let xx=L+pw*i/6;c.beginPath();c.moveTo(xx,T);c.lineTo(xx,T+ph);c.stroke()}let bw=Math.max(2,Math.min(11,step*.62));s.forEach((x,i)=>{let xx=L+step*i+step/2,col=x.close>=x.open?"#39d98a":"#ff5c72";c.strokeStyle=c.fillStyle=col;c.beginPath();c.moveTo(xx,y(x.high));c.lineTo(xx,y(x.low));c.stroke();let a=y(x.open),b=y(x.close);c.fillRect(xx-bw/2,Math.min(a,b),bw,Math.max(1.5,Math.abs(a-b)))});let last=s[s.length-1];if(last){let yy=y(last.close),col=last.close>=last.open?"#39d98a":"#ff5c72";c.strokeStyle=col;c.setLineDash([4,4]);c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.setLineDash([]);c.fillStyle=col;c.fillRect(L+pw+3,yy-10,62,20);c.fillStyle="#07100c";c.font="bold 10px system-ui";c.fillText(fp(last.close),L+pw+8,yy+3);document.querySelector(".symbol-price").textContent=fp(last.close)+" · Historical"}if(RX.trade){
+let lines=[
+{v:RX.trade.entry,label:"ENTRY",col:"#a08cff"},
+{v:RX.trade.sl,label:"SL",col:"#ff5c72"},
+{v:RX.trade.tp,label:"TP",col:"#39d98a"}
+];
+lines.forEach(q=>{
+let yy=y(q.v);
+if(yy<T||yy>T+ph)return;
+c.strokeStyle=q.col;c.setLineDash([6,4]);c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.setLineDash([]);
+c.fillStyle=q.col;c.fillRect(L+4,yy-9,72,18);c.fillStyle="#080b10";c.font="bold 9px system-ui";c.fillText(q.label+" "+fp(q.v),L+8,yy+3);
+});
+}
+if(cross){c.strokeStyle="rgba(220,225,235,.35)";c.setLineDash([3,4]);c.beginPath();c.moveTo(cross.x,T);c.lineTo(cross.x,T+ph);c.stroke();c.beginPath();c.moveTo(L,cross.y);c.lineTo(L+pw,cross.y);c.stroke();c.setLineDash([])}}
 function resizeReplayChart(){
 let cv=document.getElementById("replayChart");
 if(!cv)return;
@@ -387,6 +443,123 @@ if(cv.width!==newW)cv.width=newW;
 if(cv.height!==newH)cv.height=newH;
 draw();
 }
+
+function currentCandle(){
+if(!RX.data.length||RX.reveal<1)return null;
+return RX.data[Math.min(RX.reveal-1,RX.data.length-1)];
+}
+function selectTradeDirection(direction){
+if(RX.trade)return;
+RX.draftDirection=direction;
+document.querySelectorAll(".trade-card").forEach(x=>x.classList.toggle("selected",x.dataset.direction===direction));
+document.getElementById("tradeDirection").value=direction;
+let z=currentCandle();
+document.getElementById("tradeEntry").value=z?Math.round(z.close):"—";
+document.getElementById("tradeMessage").textContent="Укажи Stop Loss и Take Profit.";
+calculateDraftRR();
+}
+function calculateDraftRR(){
+let dir=RX.draftDirection,z=currentCandle(),sl=+document.getElementById("tradeSL").value,tp=+document.getElementById("tradeTP").value;
+if(!dir||!z||!sl||!tp){
+document.getElementById("tradeRisk").textContent="—";
+document.getElementById("tradeReward").textContent="—";
+document.getElementById("tradeRR").textContent="—";return;
+}
+let entry=z.close,risk=Math.abs(entry-sl),reward=Math.abs(tp-entry);
+document.getElementById("tradeRisk").textContent=fp(risk);
+document.getElementById("tradeReward").textContent=fp(reward);
+document.getElementById("tradeRR").textContent=risk>0?"1:"+(reward/risk).toFixed(2):"—";
+}
+function clearTradeDraft(){
+RX.draftDirection=null;
+document.querySelectorAll(".trade-card").forEach(x=>x.classList.remove("selected"));
+document.getElementById("tradeDirection").value="—";
+document.getElementById("tradeEntry").value="—";
+document.getElementById("tradeSL").value="";
+document.getElementById("tradeTP").value="";
+document.getElementById("tradeRisk").textContent="—";
+document.getElementById("tradeReward").textContent="—";
+document.getElementById("tradeRR").textContent="—";
+if(!RX.trade){
+document.getElementById("tradeState").textContent="NO POSITION";
+document.getElementById("tradeMessage").className="trade-message";
+document.getElementById("tradeMessage").textContent="Сначала выбери направление сделки.";
+}
+}
+function openTrade(){
+if(RX.trade){document.getElementById("tradeMessage").textContent="Сначала заверши текущую позицию.";return}
+let dir=RX.draftDirection,z=currentCandle(),sl=+document.getElementById("tradeSL").value,tp=+document.getElementById("tradeTP").value;
+if(!dir||!z||!sl||!tp){document.getElementById("tradeMessage").textContent="Выбери LONG/SHORT и укажи SL и TP.";return}
+let entry=z.close;
+let valid=dir==="LONG"?(sl<entry&&tp>entry):(sl>entry&&tp<entry);
+if(!valid){
+document.getElementById("tradeMessage").textContent=dir==="LONG"?"Для LONG: SL должен быть ниже Entry, TP выше Entry.":"Для SHORT: SL должен быть выше Entry, TP ниже Entry.";
+return;
+}
+let risk=Math.abs(entry-sl),reward=Math.abs(tp-entry);
+RX.trade={direction:dir,entry,sl,tp,rr:reward/risk,openedAt:RX.reveal-1,status:"OPEN"};
+document.getElementById("tradeState").textContent=dir+" · OPEN";
+document.getElementById("tradeMessage").className="trade-message";
+document.getElementById("tradeMessage").textContent=`Позиция открыта по ${fp(entry)} · RR 1:${RX.trade.rr.toFixed(2)}`;
+document.getElementById("openTradeBtn").disabled=true;
+draw();
+}
+function saveTrade(result,exitPrice){
+let data=JSON.parse(localStorage.getItem("replayx-data")||'{}');
+if(!Array.isArray(data.trades))data.trades=[];
+let tr=RX.trade;
+data.trades.unshift({
+date:new Date().toISOString(),
+symbol:"BTCUSD",
+direction:tr.direction,
+entry:Math.round(tr.entry),
+sl:Math.round(tr.sl),
+tp:Math.round(tr.tp),
+rr:+tr.rr.toFixed(2),
+result,
+exit:Math.round(exitPrice),
+timeframe:RX.tf
+});
+data.sessions=(data.sessions||0)+1;
+localStorage.setItem("replayx-data",JSON.stringify(data));
+renderJournal();
+}
+function finishTrade(result,price){
+if(!RX.trade)return;
+saveTrade(result,price);
+stopReplay();
+document.getElementById("tradeState").textContent=result;
+let msg=document.getElementById("tradeMessage");
+msg.className="trade-message "+(result==="TP"?"trade-result-win":"trade-result-loss");
+msg.textContent=result==="TP"?`Take Profit достигнут на ${fp(price)}. Сделка сохранена в Journal.`:`Stop Loss достигнут на ${fp(price)}. Сделка сохранена в Journal.`;
+RX.trade=null;
+RX.draftDirection=null;
+document.querySelectorAll(".trade-card").forEach(x=>x.classList.remove("selected"));
+document.getElementById("openTradeBtn").disabled=false;
+draw();
+}
+function checkTradeOnCandle(z){
+if(!RX.trade||!z)return;
+let t=RX.trade;
+if(t.direction==="LONG"){
+let hitSL=z.low<=t.sl,hitTP=z.high>=t.tp;
+if(hitSL&&hitTP){finishTrade("SL",t.sl);return}
+if(hitSL){finishTrade("SL",t.sl);return}
+if(hitTP){finishTrade("TP",t.tp);return}
+}else{
+let hitSL=z.high>=t.sl,hitTP=z.low<=t.tp;
+if(hitSL&&hitTP){finishTrade("SL",t.sl);return}
+if(hitSL){finishTrade("SL",t.sl);return}
+if(hitTP){finishTrade("TP",t.tp);return}
+}
+}
+function renderJournal(){
+let body=document.getElementById("journalBody");if(!body)return;
+let data=JSON.parse(localStorage.getItem("replayx-data")||'{}'),trades=Array.isArray(data.trades)?data.trades:[];
+if(!trades.length){body.innerHTML='<tr><td colspan="6" class="empty-row">Сделок пока нет. Начни Market Replay.</td></tr>';return}
+body.innerHTML=trades.map(t=>`<tr><td>${new Date(t.date).toLocaleDateString("ru-RU")}</td><td>${t.symbol}</td><td class="${t.direction==="LONG"?"positive":"negative"}">${t.direction}</td><td>1:${Number(t.rr).toFixed(2)}</td><td class="${t.result==="TP"?"positive":"negative"}">${t.result}</td><td>Replay ${t.timeframe===60?"1H":t.timeframe+"m"}</td></tr>`).join("");
+}
+
 function replayDelay(){return Math.max(90,650/RX.speed)}
 function updateReplayUI(){
 let count=document.getElementById("replayCount"),total=document.getElementById("replayTotal"),bar=document.getElementById("replayProgress"),play=document.getElementById("replayPlay");
@@ -410,6 +583,7 @@ RX.reveal++;
 keepReplayAtEdge();
 updateReplayUI();
 draw();
+checkTradeOnCandle(RX.data[RX.reveal-1]);
 }
 function replayLoop(){
 if(!RX.playing)return;
@@ -478,7 +652,10 @@ cv.addEventListener("mouseleave",()=>draw());
 document.getElementById("chartReset").onclick=()=>{RX.visible=70;keepReplayAtEdge();resizeReplayChart()};
 document.getElementById("replayPlay").onclick=()=>RX.playing?stopReplay():startReplay();
 document.getElementById("replayNext").onclick=()=>{stopReplay();replayStep()};
-document.getElementById("replayRestart").onclick=resetReplayState;
+document.getElementById("replayRestart").onclick=()=>{
+if(RX.trade){document.getElementById("tradeMessage").textContent="Сначала дождись завершения открытой позиции.";return}
+clearTradeDraft();resetReplayState();
+};
 
 document.querySelectorAll(".speed-btn").forEach(b=>b.onclick=()=>{
 document.querySelectorAll(".speed-btn").forEach(x=>x.classList.remove("active"));
@@ -487,6 +664,8 @@ if(RX.playing){clearTimeout(RX.timer);RX.timer=setTimeout(replayLoop,replayDelay
 });
 
 document.querySelectorAll(".tf-btn").forEach(b=>b.onclick=()=>{
+if(RX.trade){document.getElementById("tradeMessage").textContent="Нельзя менять таймфрейм во время открытой позиции.";return}
+clearTradeDraft();
 stopReplay();
 document.querySelectorAll(".tf-btn").forEach(x=>x.classList.remove("active"));
 b.classList.add("active");
@@ -501,6 +680,16 @@ updateReplayUI();
 resizeReplayChart();
 });
 
+document.getElementById("longCard").onclick=()=>selectTradeDirection("LONG");
+document.getElementById("shortCard").onclick=()=>selectTradeDirection("SHORT");
+document.getElementById("tradeSL").addEventListener("input",calculateDraftRR);
+document.getElementById("tradeTP").addEventListener("input",calculateDraftRR);
+document.getElementById("openTradeBtn").onclick=openTrade;
+document.getElementById("cancelTradeBtn").onclick=()=>{
+if(RX.trade){document.getElementById("tradeMessage").textContent="Открытую позицию нельзя отменить. Дождись TP или SL.";return}
+clearTradeDraft();
+};
+renderJournal();
 updateReplayUI();
 requestAnimationFrame(()=>requestAnimationFrame(resizeReplayChart));
 }
