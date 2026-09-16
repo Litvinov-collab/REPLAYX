@@ -295,7 +295,9 @@ const navTarget=document.querySelector(`[data-page="${pageId}"]`);
 if(navTarget)navTarget.classList.add("active");
 if(pageInfo[pageId]){topTitle.textContent=pageInfo[pageId].title;topSubtitle.textContent=pageInfo[pageId].subtitle}
 localStorage.setItem("replayx-page",pageId);
-if(window.innerWidth<=800)sidebar.classList.remove("open")}
+if(window.innerWidth<=800)sidebar.classList.remove("open");
+if(pageId==="replay") requestAnimationFrame(()=>requestAnimationFrame(resizeReplayChart));
+}
 navItems.forEach(item=>item.addEventListener("click",()=>openPage(item.dataset.page)));
 menuBtn.addEventListener("click",()=>sidebar.classList.toggle("open"));
 document.querySelectorAll(".toggle").forEach(toggle=>toggle.addEventListener("click",()=>toggle.classList.toggle("active")));
@@ -315,7 +317,7 @@ candle.style.height=trend+"px";
 chart.appendChild(candle)}}
 function initializeStorage(){
 if(!localStorage.getItem("replayx-initialized")){
-const defaultData={version:"0.1",trades:[],strategies:[],sessions:0,progress:{},settings:{offline:true,autosave:true,sound:false}};
+const defaultData={version:"0.2",trades:[],strategies:[],sessions:0,progress:{},settings:{offline:true,autosave:true,sound:false}};
 localStorage.setItem("replayx-data",JSON.stringify(defaultData));
 localStorage.setItem("replayx-initialized","true")}}
 function loadApp(){
@@ -330,7 +332,83 @@ function candles(tf){let r=rnd(tf*92821+17),a=[],p=78200,t=Date.UTC(2026,7,10)/1
 function fp(v){return Math.round(v).toLocaleString("en-US")}
 function geom(){let cv=document.getElementById("replayChart");if(!cv)return null,d=Math.max(1,devicePixelRatio||1),w=cv.width/d,h=cv.height/d,L=10,R=68,T=10,B=28,s=RX.data.slice(RX.offset,RX.offset+RX.visible);if(!s.length)return null;let mn=Math.min(...s.map(x=>x.low)),mx=Math.max(...s.map(x=>x.high)),pad=(mx-mn)*.08||1;mn-=pad;mx+=pad;let pw=w-L-R,ph=h-T-B,step=pw/s.length,y=v=>T+(mx-v)/(mx-mn)*ph;return{cv,d,w,h,L,T,s,mn,mx,pw,ph,step,y}}
 function draw(cross){let g=geom();if(!g)return;let{cv,d,w,h,L,T,s,mn,mx,pw,ph,step,y}=g,c=cv.getContext("2d");c.setTransform(d,0,0,d,0,0);c.clearRect(0,0,w,h);c.font="10px system-ui";c.fillStyle="#6f798b";c.strokeStyle="rgba(255,255,255,.055)";for(let i=0;i<=6;i++){let yy=T+ph*i/6;c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.fillText(fp(mx-(mx-mn)*i/6),L+pw+8,yy+3)}for(let i=0;i<=6;i++){let xx=L+pw*i/6;c.beginPath();c.moveTo(xx,T);c.lineTo(xx,T+ph);c.stroke()}let bw=Math.max(2,Math.min(11,step*.62));s.forEach((x,i)=>{let xx=L+step*i+step/2,col=x.close>=x.open?"#39d98a":"#ff5c72";c.strokeStyle=c.fillStyle=col;c.beginPath();c.moveTo(xx,y(x.high));c.lineTo(xx,y(x.low));c.stroke();let a=y(x.open),b=y(x.close);c.fillRect(xx-bw/2,Math.min(a,b),bw,Math.max(1.5,Math.abs(a-b)))});let last=s[s.length-1];if(last){let yy=y(last.close),col=last.close>=last.open?"#39d98a":"#ff5c72";c.strokeStyle=col;c.setLineDash([4,4]);c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.setLineDash([]);c.fillStyle=col;c.fillRect(L+pw+3,yy-10,62,20);c.fillStyle="#07100c";c.font="bold 10px system-ui";c.fillText(fp(last.close),L+pw+8,yy+3);document.querySelector(".symbol-price").textContent=fp(last.close)+" · Historical"}if(cross){c.strokeStyle="rgba(220,225,235,.35)";c.setLineDash([3,4]);c.beginPath();c.moveTo(cross.x,T);c.lineTo(cross.x,T+ph);c.stroke();c.beginPath();c.moveTo(L,cross.y);c.lineTo(L+pw,cross.y);c.stroke();c.setLineDash([])}}
-function initReplayChart(){let cv=document.getElementById("replayChart");if(!cv)return;RX.data=candles(RX.tf);RX.offset=RX.data.length-RX.visible;let resize=()=>{let r=cv.getBoundingClientRect(),d=Math.max(1,devicePixelRatio||1);cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);draw()};new ResizeObserver(resize).observe(cv);resize();cv.addEventListener("wheel",e=>{e.preventDefault();let old=RX.visible;RX.visible=Math.max(25,Math.min(150,old+(e.deltaY>0?8:-8)));RX.offset=Math.max(0,Math.min(RX.data.length-RX.visible,RX.offset-Math.floor((RX.visible-old)/2)));draw()},{passive:false});cv.addEventListener("mousedown",e=>{RX.drag=true;RX.lastX=e.clientX});window.addEventListener("mouseup",()=>RX.drag=false);window.addEventListener("mousemove",e=>{if(!RX.drag)return;let g=geom();if(!g)return;let delta=e.clientX-RX.lastX;if(Math.abs(delta)>=g.step){RX.offset=Math.max(0,Math.min(RX.data.length-RX.visible,RX.offset+Math.round(-delta/g.step)));RX.lastX=e.clientX;draw()}});cv.addEventListener("mousemove",e=>{let g=geom(),r=cv.getBoundingClientRect();if(!g)return;let x=e.clientX-r.left,yy=e.clientY-r.top;if(x<g.L||x>g.L+g.pw||yy<g.T||yy>g.T+g.ph)return draw();let i=Math.max(0,Math.min(g.s.length-1,Math.floor((x-g.L)/g.step))),z=g.s[i];document.getElementById("hudOhlc").textContent=`O ${fp(z.open)} H ${fp(z.high)} L ${fp(z.low)} C ${fp(z.close)}`;draw({x:g.L+g.step*i+g.step/2,y:yy})});cv.addEventListener("mouseleave",()=>draw());document.getElementById("chartReset").onclick=()=>{RX.visible=70;RX.offset=RX.data.length-70;draw()};document.querySelectorAll(".tf-btn").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tf-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active");RX.tf=+b.dataset.tf;document.getElementById("hudTf").textContent=RX.tf===60?"1H":RX.tf+"m";RX.data=candles(RX.tf);RX.visible=70;RX.offset=RX.data.length-70;draw()})}
+function resizeReplayChart(){
+let cv=document.getElementById("replayChart");
+if(!cv)return;
+let r=cv.getBoundingClientRect();
+if(r.width<10||r.height<10)return;
+let d=Math.max(1,window.devicePixelRatio||1);
+let newW=Math.round(r.width*d),newH=Math.round(r.height*d);
+if(cv.width!==newW)cv.width=newW;
+if(cv.height!==newH)cv.height=newH;
+draw();
+}
+function initReplayChart(){
+let cv=document.getElementById("replayChart");
+if(!cv)return;
+RX.data=candles(RX.tf);
+RX.offset=Math.max(0,RX.data.length-RX.visible);
+
+window.addEventListener("resize",resizeReplayChart);
+if("ResizeObserver" in window){
+new ResizeObserver(()=>resizeReplayChart()).observe(cv);
+}
+
+cv.addEventListener("wheel",e=>{
+e.preventDefault();
+let old=RX.visible;
+RX.visible=Math.max(25,Math.min(150,old+(e.deltaY>0?8:-8)));
+RX.offset=Math.max(0,Math.min(RX.data.length-RX.visible,RX.offset-Math.floor((RX.visible-old)/2)));
+draw();
+},{passive:false});
+
+cv.addEventListener("mousedown",e=>{RX.drag=true;RX.lastX=e.clientX});
+window.addEventListener("mouseup",()=>RX.drag=false);
+
+window.addEventListener("mousemove",e=>{
+if(!RX.drag)return;
+let g=geom();
+if(!g)return;
+let delta=e.clientX-RX.lastX;
+if(Math.abs(delta)>=g.step){
+RX.offset=Math.max(0,Math.min(RX.data.length-RX.visible,RX.offset+Math.round(-delta/g.step)));
+RX.lastX=e.clientX;
+draw();
+}
+});
+
+cv.addEventListener("mousemove",e=>{
+if(RX.drag)return;
+let g=geom(),r=cv.getBoundingClientRect();
+if(!g)return;
+let x=e.clientX-r.left,yy=e.clientY-r.top;
+if(x<g.L||x>g.L+g.pw||yy<g.T||yy>g.T+g.ph){draw();return}
+let i=Math.max(0,Math.min(g.s.length-1,Math.floor((x-g.L)/g.step))),z=g.s[i];
+document.getElementById("hudOhlc").textContent=`O ${fp(z.open)} H ${fp(z.high)} L ${fp(z.low)} C ${fp(z.close)}`;
+draw({x:g.L+g.step*i+g.step/2,y:yy});
+});
+
+cv.addEventListener("mouseleave",()=>draw());
+
+document.getElementById("chartReset").onclick=()=>{
+RX.visible=70;
+RX.offset=Math.max(0,RX.data.length-RX.visible);
+resizeReplayChart();
+};
+
+document.querySelectorAll(".tf-btn").forEach(b=>b.onclick=()=>{
+document.querySelectorAll(".tf-btn").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
+RX.tf=+b.dataset.tf;
+document.getElementById("hudTf").textContent=RX.tf===60?"1H":RX.tf+"m";
+RX.data=candles(RX.tf);
+RX.visible=70;
+RX.offset=Math.max(0,RX.data.length-RX.visible);
+resizeReplayChart();
+});
+
+requestAnimationFrame(()=>requestAnimationFrame(resizeReplayChart));
+}
 
 loadApp();
 initReplayChart();
