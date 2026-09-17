@@ -161,6 +161,41 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 @media(max-width:900px){.trade-form{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:550px){.trade-form{grid-template-columns:1fr}}
 
+
+/* ===== V0.6 LEARN ===== */
+.learn-overview{display:block}
+.learn-overview.hidden{display:none}
+.lesson-card{cursor:pointer;position:relative;overflow:hidden}
+.lesson-card:hover{transform:translateY(-3px);border-color:rgba(124,92,255,.5)}
+.lesson-card.done{border-color:rgba(57,217,138,.35)}
+.lesson-status{position:absolute;right:14px;top:14px;font-size:10px;color:var(--muted);padding:5px 8px;border:1px solid var(--border);border-radius:20px;background:#10151e}
+.lesson-card.done .lesson-status{color:var(--green);border-color:rgba(57,217,138,.3);background:rgba(57,217,138,.08)}
+.learn-summary{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px;padding:18px 20px}
+.learn-summary strong{font-size:24px}
+.learn-summary-text{color:var(--muted);font-size:12px;margin-top:5px}
+.learn-summary-progress{min-width:220px;flex:0 0 32%}
+.lesson-view{display:none}
+.lesson-view.active{display:block;animation:fadePage .25s ease}
+.lesson-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.lesson-back{display:flex;align-items:center;gap:8px}
+.lesson-kicker{font-size:11px;color:#a99cff;text-transform:uppercase;letter-spacing:1.3px;font-weight:800;margin-bottom:8px}
+.lesson-title{font-size:30px;margin-bottom:8px}
+.lesson-desc{color:var(--muted);font-size:13px;line-height:1.65;max-width:760px}
+.lesson-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.75fr);gap:18px}
+.lesson-content{display:flex;flex-direction:column;gap:16px}
+.lesson-block h3{font-size:15px;margin-bottom:10px}
+.lesson-block p,.lesson-block li{color:#aeb7c6;font-size:13px;line-height:1.7}
+.lesson-block ul{padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.lesson-diagram{height:250px;border-radius:14px;border:1px solid #1e2634;background:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),#0a0e14;background-size:100% 50px,70px 100%;position:relative;overflow:hidden}
+.lesson-diagram svg{width:100%;height:100%;display:block}
+.lesson-side{height:max-content;position:sticky;top:92px}
+.lesson-side-row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid #1d2430;font-size:12px}
+.lesson-side-row span{color:var(--muted)}
+.lesson-actions{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+.lesson-actions-right{display:flex;gap:9px}
+.lesson-complete.done{background:rgba(57,217,138,.12);color:var(--green);border:1px solid rgba(57,217,138,.3)}
+@media(max-width:900px){.lesson-layout{grid-template-columns:1fr}.lesson-side{position:static}.learn-summary{align-items:flex-start;flex-direction:column}.learn-summary-progress{width:100%;min-width:0}}
+
 </style>
 </head>
 <body>
@@ -291,15 +326,18 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 </div>
 </section>
 <section class="page" id="learn">
-<div class="page-heading"><h1>Learn</h1><p>Учебная база REPLAYX.</p></div>
-<div class="grid grid-3">
-<div class="card feature-card"><div class="feature-icon">01</div><h3>Market Structure</h3><p>HH, HL, LH, LL и базовое понимание структуры рынка.</p><div class="progress-wrap"><div class="progress-head"><span>Progress</span><span>0%</span></div><div class="progress"><div class="progress-fill" style="width:0%"></div></div></div></div>
-<div class="card feature-card"><div class="feature-icon">02</div><h3>Liquidity</h3><p>Liquidity pools, sweeps и работа цены с ликвидностью.</p></div>
-<div class="card feature-card"><div class="feature-icon">03</div><h3>FVG & Imbalance</h3><p>Поиск и использование дисбаланса рынка.</p></div>
-<div class="card feature-card"><div class="feature-icon">04</div><h3>BOS & CHoCH</h3><p>Подтверждение движения и изменения структуры.</p></div>
-<div class="card feature-card"><div class="feature-icon">05</div><h3>Risk Management</h3><p>Управление риском, RR и размер позиции.</p></div>
-<div class="card feature-card"><div class="feature-icon">06</div><h3>Trading Psychology</h3><p>Дисциплина, эмоции и стабильность трейдера.</p></div>
-</div>
+<div class="learn-overview" id="learnOverview">
+<div class="page-heading"><h1>Learn</h1><p>Учебная база REPLAYX. Изучай темы по порядку и сохраняй прогресс локально.</p></div>
+<div class="card learn-summary"><div><div class="card-label">LEARNING PROGRESS</div><strong id="learnPercent">0%</strong><div class="learn-summary-text" id="learnSummaryText">0 из 6 уроков завершено</div></div><div class="learn-summary-progress"><div class="progress"><div class="progress-fill" id="learnTotalFill" style="width:0%"></div></div></div></div>
+<div class="grid grid-3" id="lessonGrid">
+<div class="card feature-card lesson-card" data-lesson="0"><span class="lesson-status">NOT STARTED</span><div class="feature-icon">01</div><h3>Market Structure</h3><p>HH, HL, LH, LL и базовое понимание структуры рынка.</p></div>
+<div class="card feature-card lesson-card" data-lesson="1"><span class="lesson-status">NOT STARTED</span><div class="feature-icon">02</div><h3>Liquidity</h3><p>Liquidity pools, sweeps и работа цены с ликвидностью.</p></div>
+<div class="card feature-card lesson-card" data-lesson="2"><span class="lesson-status">NOT STARTED</span><div class="feature-icon">03</div><h3>FVG & Imbalance</h3><p>Поиск и использование дисбаланса рынка.</p></div>
+<div class="card feature-card lesson-card" data-lesson="3"><span class="lesson-status">NOT STARTED</span><div class="feature-icon">04</div><h3>BOS & CHoCH</h3><p>Подтверждение движения и изменения структуры.</p></div>
+<div class="card feature-card lesson-card" data-lesson="4"><span class="lesson-status">NOT STARTED</span><div class="feature-icon">05</div><h3>Risk Management</h3><p>Управление риском, RR и размер позиции.</p></div>
+<div class="card feature-card lesson-card" data-lesson="5"><span class="lesson-status">NOT STARTED</span><div class="feature-icon">06</div><h3>Trading Psychology</h3><p>Дисциплина, эмоции и стабильность трейдера.</p></div>
+</div></div>
+<div class="lesson-view" id="lessonView"><div class="lesson-top"><button class="btn btn-secondary lesson-back" id="lessonBack">← Все уроки</button><span class="hud-pill" id="lessonCounter">LESSON 1 / 6</span></div><div class="lesson-layout"><div><div class="card lesson-content"><div><div class="lesson-kicker" id="lessonKicker">REPLAYX ACADEMY</div><h1 class="lesson-title" id="lessonTitle"></h1><p class="lesson-desc" id="lessonDesc"></p></div><div class="lesson-block"><h3>Главная идея</h3><p id="lessonMain"></p></div><div class="lesson-diagram" id="lessonDiagram"></div><div class="lesson-block"><h3>Что нужно запомнить</h3><ul id="lessonPoints"></ul></div><div class="lesson-block"><h3>Практическое применение</h3><p id="lessonPractice"></p></div></div><div class="lesson-actions"><button class="btn btn-secondary" id="lessonPrev">← Назад</button><div class="lesson-actions-right"><button class="btn btn-secondary lesson-complete" id="lessonComplete">✓ Завершить урок</button><button class="btn btn-primary" id="lessonNext">Далее →</button></div></div></div><div class="card lesson-side"><div class="card-label">LESSON INFO</div><div class="lesson-side-row"><span>Урок</span><strong id="sideLesson">01</strong></div><div class="lesson-side-row"><span>Сложность</span><strong>Beginner</strong></div><div class="lesson-side-row"><span>Формат</span><strong>Theory + Visual</strong></div><div class="lesson-side-row"><span>Хранение</span><strong class="positive">Offline</strong></div><div class="progress-wrap"><div class="progress-head"><span>Общий прогресс</span><span id="sideProgress">0%</span></div><div class="progress"><div class="progress-fill" id="sideProgressFill" style="width:0%"></div></div></div></div></div></div>
 </section>
 <section class="page" id="strategies">
 <div class="page-heading"><h1>Strategy Builder</h1><p>Создавай и сохраняй собственные торговые стратегии.</p></div>
@@ -802,6 +840,30 @@ updateAnalytics();
 updateReplayUI();
 requestAnimationFrame(()=>requestAnimationFrame(resizeReplayChart));
 }
+
+
+// ===== V0.6 LEARN ENGINE =====
+const LEARN_LESSONS=[
+{title:"Market Structure",desc:"Научись читать базовую структуру цены через HH, HL, LH и LL.",main:"Структура рынка показывает, кто контролирует движение. В восходящей структуре цена формирует Higher High и Higher Low. В нисходящей — Lower High и Lower Low.",points:["HH — новый максимум выше предыдущего.","HL — минимум выше предыдущего минимума.","LH — максимум ниже предыдущего максимума.","LL — новый минимум ниже предыдущего.","Не определяй направление по одной свече — смотри последовательность swing-точек."],practice:"Сначала отметь явные swing high и swing low. Затем подпиши HH/HL или LH/LL. Это создаёт контекст перед поиском ликвидности, BOS, FVG и точки входа.",diagram:"structure"},
+{title:"Liquidity",desc:"Пойми, где на рынке накапливаются стоп-приказы и почему цена часто приходит к этим зонам.",main:"Ликвидность часто находится над заметными максимумами и под заметными минимумами. Вынос такой области сам по себе не является входом — важна реакция цены после снятия ликвидности.",points:["Buy-side liquidity обычно ищут над максимумами.","Sell-side liquidity обычно ищут под минимумами.","Equal Highs / Equal Lows могут формировать заметные пулы ликвидности.","Sweep — прокол уровня с последующей реакцией, но подтверждение структуры всё равно важно."],practice:"Отметь ближайшие очевидные максимумы и минимумы. Дождись взаимодействия цены с зоной, а затем ищи подтверждение на структуре вместо входа только из-за самого касания.",diagram:"liquidity"},
+{title:"FVG & Imbalance",desc:"Разбери дисбаланс цены и принцип трёхсвечного Fair Value Gap.",main:"FVG — область неэффективного движения, которая появляется при сильном импульсе. В классической трёхсвечной модели между первой и третьей свечой остаётся ценовой диапазон, который не был полностью перекрыт.",points:["Ищи FVG внутри сильного displacement, а не любой маленький разрыв.","Bullish FVG используется как потенциальная зона интереса ниже текущей цены.","Bearish FVG — как потенциальная зона интереса выше текущей цены.","FVG лучше использовать вместе с контекстом старшего таймфрейма и структурой."],practice:"После импульса отметь диапазон FVG и наблюдай, вернётся ли цена в него. Сам FVG не гарантирует реакцию: подтверждай идею ликвидностью и структурой.",diagram:"fvg"},
+{title:"BOS & CHoCH",desc:"Научись отличать продолжение структуры от потенциальной смены характера движения.",main:"BOS обычно используют как подтверждение продолжения текущей структуры, а CHoCH — как ранний сигнал того, что прежняя последовательность swing-точек могла нарушиться.",points:["BOS оценивай относительно значимой swing-точки.","Закрытие за уровнем обычно информативнее случайного прокола.","CHoCH не означает автоматический разворот рынка.","Всегда учитывай старший таймфрейм и место, где произошёл пробой."],practice:"После снятия ликвидности наблюдай, ломает ли цена значимую противоположную swing-точку. Затем ищи ретест/FVG для более структурированного сценария входа.",diagram:"bos"},
+{title:"Risk Management",desc:"Используй Entry, Stop Loss, Take Profit и Risk / Reward как единую систему.",main:"Риск определяется расстоянием от Entry до Stop Loss, а потенциальная награда — расстоянием от Entry до Take Profit. RR сравнивает потенциальную прибыль с риском.",points:["RR 1:2 означает: потенциальная награда в два раза больше риска.","Stop Loss должен иметь структурное основание, а не случайное расстояние.","Высокий RR сам по себе не делает сделку качественной.","Размер позиции должен зависеть от допустимого риска, а не от желания заработать больше."],practice:"До открытия позиции задай Entry, структурный SL и логичный TP. Посчитай RR заранее. Если параметры не соответствуют твоему плану — пропусти сделку.",diagram:"risk"},
+{title:"Trading Psychology",desc:"Сделай дисциплину частью торговой системы, а не реакцией на результат последней сделки.",main:"Качество решения и результат одной сделки — разные вещи. Хорошо выполненный сетап может закрыться по SL, а случайная сделка — по TP. Поэтому процесс нужно оценивать отдельно от результата.",points:["Не меняй правила из-за одной прибыльной или убыточной сделки.","FOMO заставляет входить без подтверждения.","Revenge trading увеличивает количество импульсивных решений.","Журнал помогает отделять качество исполнения от результата.","Нет сетапа — это тоже полноценное торговое решение."],practice:"После каждой тренировки запиши: был ли сетап, соблюдены ли правила, где была ошибка и что можно повторить. Оценивай серию решений, а не одну сделку.",diagram:"psychology"}
+];
+let currentLesson=0;
+function learnProgress(){try{let d=getReplayData();return Array.isArray(d.progress?.lessons)?d.progress.lessons:[]}catch(e){return[]}}
+function saveLearnProgress(arr){let d=getReplayData();d.progress=d.progress||{};d.progress.lessons=arr;localStorage.setItem("replayx-data",JSON.stringify(d));renderLearnProgress()}
+function renderLearnProgress(){let done=learnProgress(),count=done.filter(Boolean).length,pct=Math.round(count/LEARN_LESSONS.length*100);let set=(id,v)=>{let e=document.getElementById(id);if(e)e.textContent=v};set("learnPercent",pct+"%");set("learnSummaryText",`${count} из ${LEARN_LESSONS.length} уроков завершено`);set("sideProgress",pct+"%");let a=document.getElementById("learnTotalFill"),b=document.getElementById("sideProgressFill");if(a)a.style.width=pct+"%";if(b)b.style.width=pct+"%";document.querySelectorAll(".lesson-card").forEach((card,i)=>{let ok=!!done[i];card.classList.toggle("done",ok);let st=card.querySelector(".lesson-status");if(st)st.textContent=ok?"COMPLETED":"NOT STARTED"});let btn=document.getElementById("lessonComplete");if(btn){let ok=!!done[currentLesson];btn.classList.toggle("done",ok);btn.textContent=ok?"✓ Урок завершён":"✓ Завершить урок"}}
+function lessonSVG(type){let common='viewBox="0 0 760 250" preserveAspectRatio="none"';if(type==="structure")return `<svg ${common}><polyline points="30,190 145,105 235,150 350,60 445,110 575,35 700,82" fill="none" stroke="#9b87ff" stroke-width="4"/><g fill="#39d98a" font-size="15" font-weight="700"><text x="125" y="92">HH</text><text x="220" y="174">HL</text><text x="335" y="48">HH</text><text x="430" y="134">HL</text><text x="560" y="28">HH</text></g></svg>`;if(type==="liquidity")return `<svg ${common}><line x1="80" y1="62" x2="680" y2="62" stroke="#ffcc66" stroke-width="2" stroke-dasharray="7 6"/><text x="85" y="48" fill="#ffcc66" font-size="13">BUY-SIDE LIQUIDITY</text><polyline points="45,185 145,115 225,155 310,88 395,142 485,70 560,62 590,35 625,105 700,125" fill="none" stroke="#9b87ff" stroke-width="4"/><circle cx="590" cy="35" r="6" fill="#ff5c72"/><text x="602" y="32" fill="#ff5c72" font-size="13">SWEEP</text></svg>`;if(type==="fvg")return `<svg ${common}><rect x="315" y="92" width="145" height="64" fill="rgba(124,92,255,.18)" stroke="#9b87ff" stroke-dasharray="6 5"/><text x="350" y="127" fill="#c9c0ff" font-size="15" font-weight="700">FVG</text><line x1="190" y1="190" x2="190" y2="130" stroke="#39d98a" stroke-width="4"/><rect x="176" y="150" width="28" height="28" fill="#39d98a"/><line x1="385" y1="185" x2="385" y2="45" stroke="#39d98a" stroke-width="4"/><rect x="367" y="75" width="36" height="80" fill="#39d98a"/><line x1="565" y1="130" x2="565" y2="55" stroke="#39d98a" stroke-width="4"/><rect x="551" y="75" width="28" height="34" fill="#39d98a"/></svg>`;if(type==="bos")return `<svg ${common}><polyline points="35,190 150,115 240,155 350,75 440,125 565,48 700,85" fill="none" stroke="#9b87ff" stroke-width="4"/><line x1="330" y1="75" x2="700" y2="75" stroke="#ffcc66" stroke-width="2" stroke-dasharray="7 6"/><text x="585" y="64" fill="#ffcc66" font-size="14" font-weight="700">BOS ↑</text></svg>`;if(type==="risk")return `<svg ${common}><line x1="100" y1="125" x2="660" y2="125" stroke="#9b87ff" stroke-width="3"/><line x1="100" y1="55" x2="660" y2="55" stroke="#39d98a" stroke-width="3" stroke-dasharray="7 6"/><line x1="100" y1="195" x2="660" y2="195" stroke="#ff5c72" stroke-width="3" stroke-dasharray="7 6"/><text x="115" y="45" fill="#39d98a" font-size="14">TAKE PROFIT · +2R</text><text x="115" y="115" fill="#c9c0ff" font-size="14">ENTRY</text><text x="115" y="218" fill="#ff5c72" font-size="14">STOP LOSS · -1R</text></svg>`;return `<svg ${common}><rect x="90" y="55" width="170" height="140" rx="18" fill="rgba(57,217,138,.08)" stroke="rgba(57,217,138,.35)"/><rect x="500" y="55" width="170" height="140" rx="18" fill="rgba(255,92,114,.08)" stroke="rgba(255,92,114,.35)"/><text x="132" y="105" fill="#39d98a" font-size="17" font-weight="700">PROCESS</text><text x="116" y="138" fill="#aeb7c6" font-size="13">Follow the plan</text><text x="535" y="105" fill="#ff5c72" font-size="17" font-weight="700">EMOTION</text><text x="523" y="138" fill="#aeb7c6" font-size="13">FOMO / Revenge</text><path d="M280 125 L480 125" stroke="#9b87ff" stroke-width="4" stroke-dasharray="8 7"/><text x="340" y="108" fill="#c9c0ff" font-size="13">DISCIPLINE</text></svg>`}
+function openLesson(i){currentLesson=Math.max(0,Math.min(LEARN_LESSONS.length-1,i));let l=LEARN_LESSONS[currentLesson];document.getElementById("learnOverview").classList.add("hidden");document.getElementById("lessonView").classList.add("active");document.getElementById("lessonCounter").textContent=`LESSON ${currentLesson+1} / ${LEARN_LESSONS.length}`;document.getElementById("lessonTitle").textContent=l.title;document.getElementById("lessonDesc").textContent=l.desc;document.getElementById("lessonMain").textContent=l.main;document.getElementById("lessonPractice").textContent=l.practice;document.getElementById("lessonPoints").innerHTML=l.points.map(x=>`<li>${x}</li>`).join("");document.getElementById("lessonDiagram").innerHTML=lessonSVG(l.diagram);document.getElementById("sideLesson").textContent=String(currentLesson+1).padStart(2,"0");document.getElementById("lessonPrev").disabled=currentLesson===0;document.getElementById("lessonNext").textContent=currentLesson===LEARN_LESSONS.length-1?"К урокам →":"Далее →";renderLearnProgress();document.querySelector(".main").scrollTo({top:0,behavior:"smooth"})}
+function closeLesson(){document.getElementById("lessonView").classList.remove("active");document.getElementById("learnOverview").classList.remove("hidden");renderLearnProgress();document.querySelector(".main").scrollTo({top:0,behavior:"smooth"})}
+document.querySelectorAll(".lesson-card").forEach(c=>c.addEventListener("click",()=>openLesson(+c.dataset.lesson)));
+document.getElementById("lessonBack").onclick=closeLesson;
+document.getElementById("lessonPrev").onclick=()=>openLesson(currentLesson-1);
+document.getElementById("lessonNext").onclick=()=>currentLesson<LEARN_LESSONS.length-1?openLesson(currentLesson+1):closeLesson();
+document.getElementById("lessonComplete").onclick=()=>{let a=learnProgress();a[currentLesson]=!a[currentLesson];saveLearnProgress(a)};
+renderLearnProgress();
 
 loadApp();
 requestAnimationFrame(()=>{
