@@ -233,7 +233,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <section class="page active" id="dashboard">
 <div class="hero">
 <div class="hero-content">
-<div class="hero-badge">● REPLAYX V0.5 ANALYTICS · STABLE</div>
+<div class="hero-badge">● REPLAYX V0.6 LEARN · STABLE</div>
 <h1>Train the market. <span class="gradient-text">Master your execution.</span></h1>
 <p>Практикуй торговлю на историческом рынке, тестируй стратегии, изучай структуру цены и улучшай дисциплину без риска реальными деньгами.</p>
 <div class="hero-buttons">
@@ -593,11 +593,6 @@ rewardEl.textContent=fp(reward);
 rrEl.textContent=risk>0?"1:"+rr.toFixed(2):"—";
 rrEl.classList.toggle("negative",rr>20||rr<0.1);
 }
-let entry=z.close,risk=Math.abs(entry-sl),reward=Math.abs(tp-entry);
-document.getElementById("tradeRisk").textContent=fp(risk);
-document.getElementById("tradeReward").textContent=fp(reward);
-document.getElementById("tradeRR").textContent=risk>0?"1:"+(reward/risk).toFixed(2):"—";
-}
 function clearTradeDraft(){
 RX.draftDirection=null;
 document.querySelectorAll(".trade-card").forEach(x=>x.classList.remove("selected"));
@@ -638,14 +633,6 @@ RX.trade={direction:dir,entry,sl,tp,rr,openedAt:RX.reveal-1,status:"OPEN"};
 document.getElementById("tradeState").textContent=dir+" · OPEN";
 msg.className="trade-message";
 msg.textContent=`Позиция открыта по ${fp(entry)} · RR 1:${rr.toFixed(2)}`;
-document.getElementById("openTradeBtn").disabled=true;
-draw();
-}
-let risk=Math.abs(entry-sl),reward=Math.abs(tp-entry);
-RX.trade={direction:dir,entry,sl,tp,rr:reward/risk,openedAt:RX.reveal-1,status:"OPEN"};
-document.getElementById("tradeState").textContent=dir+" · OPEN";
-document.getElementById("tradeMessage").className="trade-message";
-document.getElementById("tradeMessage").textContent=`Позиция открыта по ${fp(entry)} · RR 1:${RX.trade.rr.toFixed(2)}`;
 document.getElementById("openTradeBtn").disabled=true;
 draw();
 }
