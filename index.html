@@ -202,7 +202,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 .practice-lab{display:none}.practice-lab.active{display:block}.practice-overview.hidden{display:none}
 .practice-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .practice-chart-wrap{height:430px;position:relative;border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#090c11}
-#practiceChart,#fvgPracticeChart{width:100%;height:100%;display:block;cursor:crosshair}
+#practiceChart,#fvgPracticeChart,#liquidityPracticeChart{width:100%;height:100%;display:block;cursor:crosshair}
 .practice-stats{display:flex;gap:10px;flex-wrap:wrap}.practice-pill{padding:8px 11px;border:1px solid var(--border);border-radius:9px;background:#111620;font-size:11px;color:var(--muted)}.practice-pill strong{color:#fff}
 .practice-message{margin-top:14px;padding:13px 15px;border:1px solid var(--border);border-radius:11px;background:#0f141c;color:var(--muted);font-size:12px}.practice-message.correct{color:var(--green);border-color:rgba(57,217,138,.35);background:rgba(57,217,138,.06)}.practice-message.wrong{color:var(--red);border-color:rgba(255,92,114,.35);background:rgba(255,92,114,.06)}
 .practice-actions{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}.practice-hint{color:var(--muted);font-size:11px;margin-top:8px}
@@ -244,7 +244,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <section class="page active" id="dashboard">
 <div class="hero">
 <div class="hero-content">
-<div class="hero-badge">● REPLAYX V0.7 PRACTICE · BOS + FVG</div>
+<div class="hero-badge">● REPLAYX V0.7 PRACTICE · COMPLETE</div>
 <h1>Train the market. <span class="gradient-text">Master your execution.</span></h1>
 <p>Практикуй торговлю на историческом рынке, тестируй стратегии, изучай структуру цены и улучшай дисциплину без риска реальными деньгами.</p>
 <div class="hero-buttons">
@@ -269,7 +269,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <div class="section-header"><div><div class="section-title">Recent Activity</div><div class="section-subtitle">Последние действия</div></div></div>
 <div class="activity-list">
 <div class="activity"><div class="activity-left"><div class="activity-icon">▶</div><div><h4>Market Replay</h4><p>Replay Engine ещё не запущен</p></div></div><span style="font-size:10px;color:var(--muted)">V0.3</span></div>
-<div class="activity"><div class="activity-left"><div class="activity-icon">◎</div><div><h4>Practice Mode</h4><p>Будет добавлен позже</p></div></div><span style="font-size:10px;color:var(--muted)">V0.7</span></div>
+<div class="activity"><div class="activity-left"><div class="activity-icon">◎</div><div><h4>Practice Mode</h4><p>BOS · FVG · Liquidity Sweep</p></div></div><span class="positive" style="font-size:10px;">READY</span></div>
 <div class="activity"><div class="activity-left"><div class="activity-icon">▤</div><div><h4>Trading Journal</h4><p>Подготовлен интерфейс</p></div></div><span class="positive" style="font-size:10px;">READY</span></div>
 </div>
 </div>
@@ -334,7 +334,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <div class="grid grid-3">
 <div class="card feature-card practice-card" id="bosPracticeCard"><div class="feature-icon">BOS</div><h3>Find BOS</h3><p>Найди Break of Structure на историческом графике.</p></div>
 <div class="card feature-card practice-card" id="fvgPracticeCard"><div class="feature-icon">FVG</div><h3>Find FVG</h3><p>Найди Fair Value Gap на историческом графике и определи его направление.</p></div>
-<div class="card feature-card"><div class="feature-icon">LQ</div><h3>Liquidity Sweep</h3><p>Скоро: определи снятие ликвидности перед движением рынка.</p></div>
+<div class="card feature-card practice-card" id="liquidityPracticeCard"><div class="feature-icon">LQ</div><h3>Liquidity Sweep</h3><p>Найди снятие ликвидности над или под заметным уровнем.</p></div>
 </div></div>
 <div class="practice-lab" id="practiceLab">
 <div class="practice-toolbar"><div><button class="btn btn-secondary" id="practiceBack">← Practice</button><div class="page-heading" style="margin:16px 0 0"><h1>Find BOS</h1><p>Кликни по свече, которая подтверждает пробой предыдущего swing high.</p></div></div><div class="practice-stats"><div class="practice-pill">Attempts <strong id="practiceAttempts">0</strong></div><div class="practice-pill">Correct <strong id="practiceCorrect">0</strong></div><div class="practice-pill">Accuracy <strong id="practiceAccuracy">0%</strong></div></div></div>
@@ -349,6 +349,13 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <div class="practice-hint">Задание: найди FVG. Для bullish FVG low третьей свечи выше high первой; для bearish FVG high третьей свечи ниже low первой. Выбери центральную импульсную свечу.</div>
 <div class="practice-actions"><button class="btn btn-primary" id="fvgCheck">Check Answer</button><button class="btn btn-secondary" id="fvgNew">New Task</button></div>
 <div class="practice-message" id="fvgMessage">Выбери центральную свечу FVG на графике.</div>
+</div>
+<div class="practice-lab" id="liquidityPracticeLab">
+<div class="practice-toolbar"><div><button class="btn btn-secondary" id="liquidityPracticeBack">← Practice</button><div class="page-heading" style="margin:16px 0 0"><h1>Liquidity Sweep</h1><p>Найди свечу, которая сняла ликвидность за отмеченным уровнем и вернулась обратно.</p></div></div><div class="practice-stats"><div class="practice-pill">Attempts <strong id="liquidityAttempts">0</strong></div><div class="practice-pill">Correct <strong id="liquidityCorrect">0</strong></div><div class="practice-pill">Accuracy <strong id="liquidityAccuracy">0%</strong></div></div></div>
+<div class="practice-chart-wrap"><canvas id="liquidityPracticeChart"></canvas></div>
+<div class="practice-hint" id="liquidityHint">Задание: найди свечу Liquidity Sweep. Фитиль должен выйти за жёлтый уровень ликвидности, а закрытие — вернуться обратно.</div>
+<div class="practice-actions"><button class="btn btn-primary" id="liquidityCheck">Check Answer</button><button class="btn btn-secondary" id="liquidityNew">New Task</button></div>
+<div class="practice-message" id="liquidityMessage">Выбери свечу снятия ликвидности.</div>
 </div>
 </section>
 <section class="page" id="learn">
@@ -898,11 +905,22 @@ function drawFvgPractice(){let cv=document.getElementById("fvgPracticeChart");if
 function openFvgPractice(){document.getElementById("practiceOverview").classList.add("hidden");document.getElementById("fvgPracticeLab").classList.add("active");updateFvgStats();makeFvgTask();requestAnimationFrame(drawFvgPractice)}
 function initFvgPractice(){let card=document.getElementById("fvgPracticeCard"),cv=document.getElementById("fvgPracticeChart");if(!card||!cv)return;card.onclick=openFvgPractice;document.getElementById("fvgPracticeBack").onclick=()=>{document.getElementById("fvgPracticeLab").classList.remove("active");document.getElementById("practiceOverview").classList.remove("hidden")};document.getElementById("fvgNew").onclick=makeFvgTask;document.getElementById("fvgCheck").onclick=()=>{let m=document.getElementById("fvgMessage");if(FX.selected===null){m.className="practice-message wrong";m.textContent="Сначала выбери свечу.";return}let s=getFvgStats();s.attempts++;let ok=FX.selected===FX.answer;if(ok)s.correct++;localStorage.setItem("replayx-practice-fvg",JSON.stringify(s));updateFvgStats();m.className="practice-message "+(ok?"correct":"wrong");m.textContent=ok?`Correct! Это ${FX.type.toUpperCase()} FVG. Центральная импульсная свеча выбрана верно.`:`Incorrect. Правильный ответ подсвечен. Это ${FX.type.toUpperCase()} FVG между первой и третьей свечой.`;if(!ok){FX.selected=FX.answer;drawFvgPractice()}};cv.addEventListener("click",e=>{let r=cv.getBoundingClientRect(),L=14,R=68,pw=r.width-L-R;if(e.clientX-r.left<L||e.clientX-r.left>L+pw)return;FX.selected=Math.max(0,Math.min(FX.data.length-1,Math.floor((e.clientX-r.left-L)/(pw/FX.data.length))));let m=document.getElementById("fvgMessage");m.className="practice-message";m.textContent="Свеча выбрана. Нажми Check Answer.";drawFvgPractice()});window.addEventListener("resize",()=>{if(document.getElementById("fvgPracticeLab")?.classList.contains("active"))drawFvgPractice()})}
 
+
+/* ===== V0.7 PRACTICE · LIQUIDITY SWEEP ===== */
+const LX={data:[],selected:null,answer:null,level:null,type:"buy-side"};
+function getLiquidityStats(){try{return JSON.parse(localStorage.getItem("replayx-practice-liquidity")||'{"attempts":0,"correct":0}')}catch(e){return{attempts:0,correct:0}}}
+function updateLiquidityStats(){let s=getLiquidityStats(),a=document.getElementById("liquidityAttempts"),c=document.getElementById("liquidityCorrect"),x=document.getElementById("liquidityAccuracy");if(a)a.textContent=s.attempts;if(c)c.textContent=s.correct;if(x)x.textContent=(s.attempts?Math.round(s.correct/s.attempts*100):0)+"%"}
+function makeLiquidityTask(){let r=rnd((Date.now()+27191)&0xffffffff),a=[],p=78000;for(let i=0;i<54;i++){let o=p,c=o+(r()-.5)*70;a.push({open:o,close:c,high:Math.max(o,c)+20+r()*45,low:Math.min(o,c)-20-r()*45});p=c}let ans=34+Math.floor(r()*7),buy=r()>.5,base=a[22].close;if(buy){let level=base+150;for(let i=18;i<ans;i++){a[i].open=Math.min(a[i].open,level-35);a[i].close=Math.min(a[i].close,level-28);a[i].high=Math.min(a[i].high,level-8-r()*10)}a[22].high=level-3;a[27].high=level-1;a[ans]={open:level-42,close:level-35,high:level+92,low:level-78};for(let i=ans+1;i<a.length;i++){let drop=(i-ans)*7;a[i].open=Math.min(a[i].open,level-35-drop);a[i].close=Math.min(a[i].close,level-45-drop);a[i].high=Math.max(a[i].open,a[i].close)+25+r()*25;a[i].low=Math.min(a[i].open,a[i].close)-25-r()*35}LX.level=level;LX.type="buy-side"}else{let level=base-150;for(let i=18;i<ans;i++){a[i].open=Math.max(a[i].open,level+35);a[i].close=Math.max(a[i].close,level+28);a[i].low=Math.max(a[i].low,level+8+r()*10)}a[22].low=level+3;a[27].low=level+1;a[ans]={open:level+42,close:level+35,high:level+78,low:level-92};for(let i=ans+1;i<a.length;i++){let rise=(i-ans)*7;a[i].open=Math.max(a[i].open,level+35+rise);a[i].close=Math.max(a[i].close,level+45+rise);a[i].high=Math.max(a[i].open,a[i].close)+25+r()*35;a[i].low=Math.min(a[i].open,a[i].close)-25-r()*25}LX.level=level;LX.type="sell-side"}LX.data=a;LX.answer=ans;LX.selected=null;let h=document.getElementById("liquidityHint"),m=document.getElementById("liquidityMessage");if(h)h.textContent=`Задание: найди ${LX.type.toUpperCase()} Liquidity Sweep. Фитиль должен выйти за жёлтый уровень, а закрытие — вернуться обратно.`;if(m){m.className="practice-message";m.textContent="Выбери свечу снятия ликвидности."}drawLiquidityPractice()}
+function drawLiquidityPractice(){let cv=document.getElementById("liquidityPracticeChart");if(!cv||!LX.data.length)return;let rect=cv.getBoundingClientRect(),d=Math.max(1,devicePixelRatio||1);if(rect.width<10)return;cv.width=Math.round(rect.width*d);cv.height=Math.round(rect.height*d);let c=cv.getContext("2d");c.setTransform(d,0,0,d,0,0);let w=rect.width,h=rect.height,L=14,R=68,T=16,B=28,mn=Math.min(...LX.data.map(z=>z.low)),mx=Math.max(...LX.data.map(z=>z.high)),pad=(mx-mn)*.08;mn-=pad;mx+=pad;let pw=w-L-R,ph=h-T-B,step=pw/LX.data.length,y=v=>T+(mx-v)/(mx-mn)*ph;c.clearRect(0,0,w,h);c.strokeStyle="rgba(255,255,255,.055)";c.fillStyle="#6f798b";c.font="10px system-ui";for(let i=0;i<=6;i++){let yy=T+ph*i/6;c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.fillText(fp(mx-(mx-mn)*i/6),L+pw+8,yy+3)}let ly=y(LX.level);c.strokeStyle="#ffcc66";c.setLineDash([6,5]);c.beginPath();c.moveTo(L,ly);c.lineTo(L+pw,ly);c.stroke();c.setLineDash([]);c.fillStyle="#ffcc66";c.fillText(LX.type==="buy-side"?"BUY-SIDE LIQUIDITY":"SELL-SIDE LIQUIDITY",L+6,LX.type==="buy-side"?ly-7:ly+15);let bw=Math.max(4,Math.min(12,step*.62));LX.data.forEach((z,i)=>{let x=L+step*i+step/2,col=z.close>=z.open?"#39d98a":"#ff5c72";if(i===LX.selected){c.fillStyle="rgba(124,92,255,.18)";c.fillRect(L+step*i,T,step,ph)}c.strokeStyle=c.fillStyle=col;c.beginPath();c.moveTo(x,y(z.high));c.lineTo(x,y(z.low));c.stroke();let yo=y(z.open),yc=y(z.close);c.fillRect(x-bw/2,Math.min(yo,yc),bw,Math.max(2,Math.abs(yo-yc)))});}
+function openLiquidityPractice(){document.getElementById("practiceOverview").classList.add("hidden");document.getElementById("liquidityPracticeLab").classList.add("active");updateLiquidityStats();makeLiquidityTask();requestAnimationFrame(drawLiquidityPractice)}
+function initLiquidityPractice(){let card=document.getElementById("liquidityPracticeCard"),cv=document.getElementById("liquidityPracticeChart");if(!card||!cv)return;card.onclick=openLiquidityPractice;document.getElementById("liquidityPracticeBack").onclick=()=>{document.getElementById("liquidityPracticeLab").classList.remove("active");document.getElementById("practiceOverview").classList.remove("hidden")};document.getElementById("liquidityNew").onclick=makeLiquidityTask;document.getElementById("liquidityCheck").onclick=()=>{let m=document.getElementById("liquidityMessage");if(LX.selected===null){m.className="practice-message wrong";m.textContent="Сначала выбери свечу.";return}let s=getLiquidityStats();s.attempts++;let ok=LX.selected===LX.answer;if(ok)s.correct++;localStorage.setItem("replayx-practice-liquidity",JSON.stringify(s));updateLiquidityStats();m.className="practice-message "+(ok?"correct":"wrong");m.textContent=ok?`Correct! Это ${LX.type.toUpperCase()} sweep: фитиль снял ликвидность и свеча закрылась обратно за уровнем.`:`Incorrect. Правильная sweep-свеча подсвечена. Ищи выход фитиля за уровень с закрытием обратно.`;if(!ok){LX.selected=LX.answer;drawLiquidityPractice()}};cv.addEventListener("click",e=>{let r=cv.getBoundingClientRect(),L=14,R=68,pw=r.width-L-R;if(e.clientX-r.left<L||e.clientX-r.left>L+pw)return;LX.selected=Math.max(0,Math.min(LX.data.length-1,Math.floor((e.clientX-r.left-L)/(pw/LX.data.length))));let m=document.getElementById("liquidityMessage");m.className="practice-message";m.textContent="Свеча выбрана. Нажми Check Answer.";drawLiquidityPractice()});window.addEventListener("resize",()=>{if(document.getElementById("liquidityPracticeLab")?.classList.contains("active"))drawLiquidityPractice()})}
+
 loadApp();
 requestAnimationFrame(()=>{
 initReplayChart();
 initPractice();
 initFvgPractice();
+initLiquidityPractice();
 const saved=localStorage.getItem("replayx-page");
 if(saved==="replay")requestAnimationFrame(resizeReplayChart);
 });
