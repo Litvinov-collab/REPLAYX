@@ -202,7 +202,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 .practice-lab{display:none}.practice-lab.active{display:block}.practice-overview.hidden{display:none}
 .practice-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .practice-chart-wrap{height:430px;position:relative;border:1px solid var(--border);border-radius:16px;overflow:hidden;background:#090c11}
-#practiceChart{width:100%;height:100%;display:block;cursor:crosshair}
+#practiceChart,#fvgPracticeChart{width:100%;height:100%;display:block;cursor:crosshair}
 .practice-stats{display:flex;gap:10px;flex-wrap:wrap}.practice-pill{padding:8px 11px;border:1px solid var(--border);border-radius:9px;background:#111620;font-size:11px;color:var(--muted)}.practice-pill strong{color:#fff}
 .practice-message{margin-top:14px;padding:13px 15px;border:1px solid var(--border);border-radius:11px;background:#0f141c;color:var(--muted);font-size:12px}.practice-message.correct{color:var(--green);border-color:rgba(57,217,138,.35);background:rgba(57,217,138,.06)}.practice-message.wrong{color:var(--red);border-color:rgba(255,92,114,.35);background:rgba(255,92,114,.06)}
 .practice-actions{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}.practice-hint{color:var(--muted);font-size:11px;margin-top:8px}
@@ -244,7 +244,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <section class="page active" id="dashboard">
 <div class="hero">
 <div class="hero-content">
-<div class="hero-badge">● REPLAYX V0.7 PRACTICE · BOS</div>
+<div class="hero-badge">● REPLAYX V0.7 PRACTICE · BOS + FVG</div>
 <h1>Train the market. <span class="gradient-text">Master your execution.</span></h1>
 <p>Практикуй торговлю на историческом рынке, тестируй стратегии, изучай структуру цены и улучшай дисциплину без риска реальными деньгами.</p>
 <div class="hero-buttons">
@@ -333,7 +333,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <div class="page-heading"><h1>Practice Mode</h1><p>Выполняй задания прямо на графике.</p></div>
 <div class="grid grid-3">
 <div class="card feature-card practice-card" id="bosPracticeCard"><div class="feature-icon">BOS</div><h3>Find BOS</h3><p>Найди Break of Structure на историческом графике.</p></div>
-<div class="card feature-card"><div class="feature-icon">FVG</div><h3>Find FVG</h3><p>Скоро: найди Fair Value Gap и определи его направление.</p></div>
+<div class="card feature-card practice-card" id="fvgPracticeCard"><div class="feature-icon">FVG</div><h3>Find FVG</h3><p>Найди Fair Value Gap на историческом графике и определи его направление.</p></div>
 <div class="card feature-card"><div class="feature-icon">LQ</div><h3>Liquidity Sweep</h3><p>Скоро: определи снятие ликвидности перед движением рынка.</p></div>
 </div></div>
 <div class="practice-lab" id="practiceLab">
@@ -342,6 +342,13 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <div class="practice-hint">Задание: найди bullish BOS — свечу, которая закрылась выше отмеченного структурного максимума. Выбранная свеча подсвечивается фиолетовым.</div>
 <div class="practice-actions"><button class="btn btn-primary" id="practiceCheck">Check Answer</button><button class="btn btn-secondary" id="practiceNew">New Task</button></div>
 <div class="practice-message" id="practiceMessage">Выбери свечу на графике.</div>
+</div>
+<div class="practice-lab" id="fvgPracticeLab">
+<div class="practice-toolbar"><div><button class="btn btn-secondary" id="fvgPracticeBack">← Practice</button><div class="page-heading" style="margin:16px 0 0"><h1>Find FVG</h1><p>Найди трёхсвечный Fair Value Gap и выбери среднюю импульсную свечу.</p></div></div><div class="practice-stats"><div class="practice-pill">Attempts <strong id="fvgAttempts">0</strong></div><div class="practice-pill">Correct <strong id="fvgCorrect">0</strong></div><div class="practice-pill">Accuracy <strong id="fvgAccuracy">0%</strong></div></div></div>
+<div class="practice-chart-wrap"><canvas id="fvgPracticeChart"></canvas></div>
+<div class="practice-hint">Задание: найди FVG. Для bullish FVG low третьей свечи выше high первой; для bearish FVG high третьей свечи ниже low первой. Выбери центральную импульсную свечу.</div>
+<div class="practice-actions"><button class="btn btn-primary" id="fvgCheck">Check Answer</button><button class="btn btn-secondary" id="fvgNew">New Task</button></div>
+<div class="practice-message" id="fvgMessage">Выбери центральную свечу FVG на графике.</div>
 </div>
 </section>
 <section class="page" id="learn">
@@ -881,10 +888,21 @@ function drawPractice(){let cv=document.getElementById("practiceChart");if(!cv||
 function openBosPractice(){document.getElementById("practiceOverview").classList.add("hidden");document.getElementById("practiceLab").classList.add("active");updatePracticeStats();makeBosTask();requestAnimationFrame(drawPractice)}
 function initPractice(){let card=document.getElementById("bosPracticeCard"),cv=document.getElementById("practiceChart");if(!card||!cv)return;card.onclick=openBosPractice;document.getElementById("practiceBack").onclick=()=>{document.getElementById("practiceLab").classList.remove("active");document.getElementById("practiceOverview").classList.remove("hidden")};document.getElementById("practiceNew").onclick=makeBosTask;document.getElementById("practiceCheck").onclick=()=>{let m=document.getElementById("practiceMessage");if(PX.selected===null){m.className="practice-message wrong";m.textContent="Сначала выбери свечу.";return}let s=getPracticeStats();s.attempts++;let ok=PX.selected===PX.answer;if(ok)s.correct++;localStorage.setItem("replayx-practice-bos",JSON.stringify(s));updatePracticeStats();m.className="practice-message "+(ok?"correct":"wrong");m.textContent=ok?"Correct! Это свеча BOS: она закрылась выше структурного максимума.":"Incorrect. Ищи первую свечу, которая закрылась выше жёлтого Structure High.";if(!ok){PX.selected=PX.answer;drawPractice()}};cv.addEventListener("click",e=>{let r=cv.getBoundingClientRect(),L=14,R=68,pw=r.width-L-R;if(e.clientX-r.left<L||e.clientX-r.left>L+pw)return;PX.selected=Math.max(0,Math.min(PX.data.length-1,Math.floor((e.clientX-r.left-L)/(pw/PX.data.length))));let m=document.getElementById("practiceMessage");m.className="practice-message";m.textContent="Свеча выбрана. Нажми Check Answer.";drawPractice()});window.addEventListener("resize",()=>{if(document.getElementById("practiceLab")?.classList.contains("active"))drawPractice()})}
 
+
+/* ===== V0.7 PRACTICE · FVG ===== */
+const FX={data:[],selected:null,answer:null,type:"bullish",zoneTop:null,zoneBottom:null};
+function getFvgStats(){try{return JSON.parse(localStorage.getItem("replayx-practice-fvg")||'{"attempts":0,"correct":0}')}catch(e){return{attempts:0,correct:0}}}
+function updateFvgStats(){let s=getFvgStats(),a=document.getElementById("fvgAttempts"),c=document.getElementById("fvgCorrect"),x=document.getElementById("fvgAccuracy");if(a)a.textContent=s.attempts;if(c)c.textContent=s.correct;if(x)x.textContent=(s.attempts?Math.round(s.correct/s.attempts*100):0)+"%"}
+function makeFvgTask(){let r=rnd((Date.now()+9173)&0xffffffff),a=[],p=78100;for(let i=0;i<52;i++){let o=p,c=o+(r()-.5)*90;a.push({open:o,close:c,high:Math.max(o,c)+18+r()*42,low:Math.min(o,c)-18-r()*42});p=c}let mid=18+Math.floor(r()*18),bull=r()>.5;let base=a[mid-1].close;if(bull){a[mid-1]={open:base-28,close:base+8,high:base+30,low:base-55};a[mid]={open:base+12,close:base+185,high:base+210,low:base-2};a[mid+1]={open:base+170,close:base+150,high:base+205,low:base+82};FX.zoneBottom=a[mid-1].high;FX.zoneTop=a[mid+1].low;for(let i=mid+2;i<a.length;i++){let shift=115+(i-mid)*2;a[i].open=Math.max(a[i].open,base+shift);a[i].close=Math.max(a[i].close,base+shift-25);a[i].high=Math.max(a[i].high,a[i].open,a[i].close)+15;a[i].low=Math.min(a[i].low,a[i].open,a[i].close)-20}}else{a[mid-1]={open:base+28,close:base-8,high:base+55,low:base-30};a[mid]={open:base-12,close:base-185,high:base+2,low:base-210};a[mid+1]={open:base-170,close:base-150,high:base-82,low:base-205};FX.zoneTop=a[mid-1].low;FX.zoneBottom=a[mid+1].high;for(let i=mid+2;i<a.length;i++){let shift=115+(i-mid)*2;a[i].open=Math.min(a[i].open,base-shift);a[i].close=Math.min(a[i].close,base-shift+25);a[i].high=Math.max(a[i].high,a[i].open,a[i].close)+20;a[i].low=Math.min(a[i].low,a[i].open,a[i].close)-15}}FX.data=a;FX.answer=mid;FX.type=bull?"bullish":"bearish";FX.selected=null;let m=document.getElementById("fvgMessage");if(m){m.className="practice-message";m.textContent="Выбери центральную свечу FVG на графике."}drawFvgPractice()}
+function drawFvgPractice(){let cv=document.getElementById("fvgPracticeChart");if(!cv||!FX.data.length)return;let rect=cv.getBoundingClientRect(),d=Math.max(1,devicePixelRatio||1);if(rect.width<10)return;cv.width=Math.round(rect.width*d);cv.height=Math.round(rect.height*d);let c=cv.getContext("2d");c.setTransform(d,0,0,d,0,0);let w=rect.width,h=rect.height,L=14,R=68,T=16,B=28,mn=Math.min(...FX.data.map(z=>z.low)),mx=Math.max(...FX.data.map(z=>z.high)),pad=(mx-mn)*.08;mn-=pad;mx+=pad;let pw=w-L-R,ph=h-T-B,step=pw/FX.data.length,y=v=>T+(mx-v)/(mx-mn)*ph;c.clearRect(0,0,w,h);c.strokeStyle="rgba(255,255,255,.055)";c.fillStyle="#6f798b";c.font="10px system-ui";for(let i=0;i<=6;i++){let yy=T+ph*i/6;c.beginPath();c.moveTo(L,yy);c.lineTo(L+pw,yy);c.stroke();c.fillText(fp(mx-(mx-mn)*i/6),L+pw+8,yy+3)}let bw=Math.max(4,Math.min(12,step*.62));FX.data.forEach((z,i)=>{let x=L+step*i+step/2,col=z.close>=z.open?"#39d98a":"#ff5c72";if(i===FX.selected){c.fillStyle="rgba(124,92,255,.18)";c.fillRect(L+step*i,T,step,ph)}c.strokeStyle=c.fillStyle=col;c.beginPath();c.moveTo(x,y(z.high));c.lineTo(x,y(z.low));c.stroke();let yo=y(z.open),yc=y(z.close);c.fillRect(x-bw/2,Math.min(yo,yc),bw,Math.max(2,Math.abs(yo-yc)))});}
+function openFvgPractice(){document.getElementById("practiceOverview").classList.add("hidden");document.getElementById("fvgPracticeLab").classList.add("active");updateFvgStats();makeFvgTask();requestAnimationFrame(drawFvgPractice)}
+function initFvgPractice(){let card=document.getElementById("fvgPracticeCard"),cv=document.getElementById("fvgPracticeChart");if(!card||!cv)return;card.onclick=openFvgPractice;document.getElementById("fvgPracticeBack").onclick=()=>{document.getElementById("fvgPracticeLab").classList.remove("active");document.getElementById("practiceOverview").classList.remove("hidden")};document.getElementById("fvgNew").onclick=makeFvgTask;document.getElementById("fvgCheck").onclick=()=>{let m=document.getElementById("fvgMessage");if(FX.selected===null){m.className="practice-message wrong";m.textContent="Сначала выбери свечу.";return}let s=getFvgStats();s.attempts++;let ok=FX.selected===FX.answer;if(ok)s.correct++;localStorage.setItem("replayx-practice-fvg",JSON.stringify(s));updateFvgStats();m.className="practice-message "+(ok?"correct":"wrong");m.textContent=ok?`Correct! Это ${FX.type.toUpperCase()} FVG. Центральная импульсная свеча выбрана верно.`:`Incorrect. Правильный ответ подсвечен. Это ${FX.type.toUpperCase()} FVG между первой и третьей свечой.`;if(!ok){FX.selected=FX.answer;drawFvgPractice()}};cv.addEventListener("click",e=>{let r=cv.getBoundingClientRect(),L=14,R=68,pw=r.width-L-R;if(e.clientX-r.left<L||e.clientX-r.left>L+pw)return;FX.selected=Math.max(0,Math.min(FX.data.length-1,Math.floor((e.clientX-r.left-L)/(pw/FX.data.length))));let m=document.getElementById("fvgMessage");m.className="practice-message";m.textContent="Свеча выбрана. Нажми Check Answer.";drawFvgPractice()});window.addEventListener("resize",()=>{if(document.getElementById("fvgPracticeLab")?.classList.contains("active"))drawFvgPractice()})}
+
 loadApp();
 requestAnimationFrame(()=>{
 initReplayChart();
 initPractice();
+initFvgPractice();
 const saved=localStorage.getItem("replayx-page");
 if(saved==="replay")requestAnimationFrame(resizeReplayChart);
 });
