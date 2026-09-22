@@ -210,6 +210,9 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 
 /* ===== V0.8 STRATEGY BUILDER ===== */
 .strategy-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr);gap:18px}.strategy-form{display:flex;flex-direction:column;gap:14px}.strategy-field label{display:block;font-size:10px;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.8px}.strategy-field input,.strategy-field select,.strategy-field textarea{width:100%;border:1px solid var(--border);background:#111620;color:#fff;border-radius:9px;padding:11px;outline:none;font:600 12px system-ui}.strategy-field textarea{min-height:88px;resize:vertical;line-height:1.5}.strategy-field input:focus,.strategy-field select:focus,.strategy-field textarea:focus{border-color:rgba(124,92,255,.65)}.strategy-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.strategy-list{display:flex;flex-direction:column;gap:12px}.strategy-item{padding:16px;border:1px solid var(--border);background:#0c1017;border-radius:13px}.strategy-item-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.strategy-item h3{font-size:15px;margin-bottom:5px}.strategy-meta{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.strategy-tag{font-size:10px;color:#c9c0ff;background:rgba(124,92,255,.1);border:1px solid rgba(124,92,255,.25);padding:5px 7px;border-radius:20px}.strategy-rules{color:var(--muted);font-size:11px;line-height:1.55;white-space:pre-line}.strategy-actions{display:flex;gap:7px;margin-top:12px}.strategy-actions button{padding:7px 10px;font-size:11px}.strategy-empty{text-align:center;color:var(--muted);padding:45px 20px;border:1px dashed var(--border);border-radius:13px}.strategy-message{min-height:18px;font-size:11px;color:var(--muted)}@media(max-width:900px){.strategy-layout{grid-template-columns:1fr}}
+/* ===== V0.9 CHALLENGES ===== */
+.challenge-stats{margin-bottom:6px}.challenge-card{position:relative;overflow:hidden;min-height:215px}.challenge-card.completed{border-color:rgba(57,217,138,.38);box-shadow:0 0 0 1px rgba(57,217,138,.06)}.challenge-card.completed:after{content:"✓";position:absolute;right:16px;top:13px;color:var(--green);font-size:18px;font-weight:900}.challenge-head{display:flex;align-items:center;gap:12px;margin-bottom:13px}.challenge-icon{width:44px;height:44px;border-radius:12px;background:rgba(124,92,255,.12);border:1px solid rgba(124,92,255,.22);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#c9c0ff}.challenge-card.completed .challenge-icon{background:rgba(57,217,138,.1);border-color:rgba(57,217,138,.25);color:var(--green)}.challenge-name{font-size:15px;font-weight:800}.challenge-xp{font-size:10px;color:#a99cff;margin-top:4px;font-weight:800}.challenge-desc{font-size:12px;color:var(--muted);line-height:1.55;min-height:38px}.challenge-progress-text{font-size:11px;color:#aeb7c6}.challenge-card.completed .challenge-progress-text{color:var(--green)}
+
 </style>
 </head>
 <body>
@@ -247,7 +250,7 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <section class="page active" id="dashboard">
 <div class="hero">
 <div class="hero-content">
-<div class="hero-badge">● REPLAYX V0.8 STRATEGY BUILDER · STABLE</div>
+<div class="hero-badge">● REPLAYX V0.9 CHALLENGES · STABLE</div>
 <h1>Train the market. <span class="gradient-text">Master your execution.</span></h1>
 <p>Практикуй торговлю на историческом рынке, тестируй стратегии, изучай структуру цены и улучшай дисциплину без риска реальными деньгами.</p>
 <div class="hero-buttons">
@@ -423,12 +426,15 @@ body{overflow:auto}.sidebar{position:fixed;left:-270px;top:0;bottom:0;z-index:10
 <div class="card section chart-card" id="equityCard"><div class="section-header"><div><div class="section-title">Equity Curve</div><div class="section-subtitle">Cumulative performance measured in R</div></div><span id="equityValue" style="font-size:12px;color:var(--muted)">0.00R</span></div><canvas id="equityChart" style="width:100%;height:245px;display:block"></canvas></div>
 </section>
 <section class="page" id="challenges">
-<div class="page-heading"><h1>Challenges</h1><p>Испытания для развития навыков и дисциплины.</p></div>
-<div class="grid grid-3">
-<div class="card feature-card"><div class="feature-icon">10</div><h3>Perfect Execution</h3><p>Проведи 10 сделок без нарушения своей стратегии.</p><div class="progress-wrap"><div class="progress-head"><span>0 / 10</span><span>0%</span></div><div class="progress"><div class="progress-fill" style="width:0%"></div></div></div></div>
-<div class="card feature-card"><div class="feature-icon">7D</div><h3>Seven Days</h3><p>Тренируйся семь дней подряд.</p><div class="progress-wrap"><div class="progress-head"><span>0 / 7</span><span>0%</span></div><div class="progress"><div class="progress-fill" style="width:0%"></div></div></div></div>
-<div class="card feature-card"><div class="feature-icon">90</div><h3>Discipline 90</h3><p>Достигни уровня дисциплины 90% или выше.</p></div>
+<div class="page-heading"><h1>Challenges</h1><p>Выполняй испытания, повышай уровень и отслеживай общий прогресс REPLAYX.</p></div>
+<div class="grid grid-4 challenge-stats">
+<div class="card stat-card"><div class="card-label">LEVEL</div><div class="stat-value" id="challengeLevel">1</div><div class="stat-footer">REPLAYX Training Level</div></div>
+<div class="card stat-card"><div class="card-label">XP</div><div class="stat-value" id="challengeXP">0</div><div class="stat-footer" id="challengeNextXP">Next level: 100 XP</div></div>
+<div class="card stat-card"><div class="card-label">COMPLETED</div><div class="stat-value" id="challengeCompleted">0 / 8</div><div class="stat-footer">Completed challenges</div></div>
+<div class="card stat-card"><div class="card-label">TOTAL PROGRESS</div><div class="stat-value" id="challengeTotalPct">0%</div><div class="progress-wrap"><div class="progress"><div class="progress-fill" id="challengeTotalFill" style="width:0%"></div></div></div></div>
 </div>
+<div class="section-header section"><div><div class="section-title">Training Challenges</div><div class="section-subtitle">Прогресс считается автоматически из Replay, Practice, Learn и Strategies.</div></div></div>
+<div class="grid grid-3" id="challengeGrid"></div>
 </section>
 <section class="page" id="settings">
 <div class="page-heading"><h1>Settings</h1><p>Настройки платформы REPLAYX.</p></div>
@@ -470,6 +476,7 @@ localStorage.setItem("replayx-page",pageId);
 if(window.innerWidth<=800)sidebar.classList.remove("open");
 if(pageId==="replay") requestAnimationFrame(()=>requestAnimationFrame(resizeReplayChart));
 if(pageId==="dashboard"||pageId==="analytics") requestAnimationFrame(()=>requestAnimationFrame(updateAnalytics));
+if(pageId==="challenges") requestAnimationFrame(renderChallenges);
 }
 navItems.forEach(item=>item.addEventListener("click",()=>openPage(item.dataset.page)));
 menuBtn.addEventListener("click",()=>sidebar.classList.toggle("open"));
@@ -952,6 +959,22 @@ function editStrategy(id){let x=getStrategies().find(s=>String(s.id)===String(id
 function deleteStrategy(id){let list=getStrategies().filter(x=>String(x.id)!==String(id));saveStrategies(list);if(document.getElementById("strategyEditId").value===String(id))strategyResetForm();let m=document.getElementById("strategyMessage");m.textContent="Стратегия удалена.";m.className="strategy-message"}
 function initStrategyBuilder(){let save=document.getElementById("strategySave"),cancel=document.getElementById("strategyCancelEdit");if(!save||!cancel)return;save.onclick=saveStrategyFromForm;cancel.onclick=()=>{strategyResetForm();let m=document.getElementById("strategyMessage");m.textContent="Редактирование отменено.";m.className="strategy-message"};renderStrategies()}
 
+
+/* ===== V0.9 CHALLENGES ENGINE ===== */
+function readPracticeStats(key){try{let x=JSON.parse(localStorage.getItem(key)||"{}");return{attempts:Number(x.attempts)||0,correct:Number(x.correct)||0}}catch(e){return{attempts:0,correct:0}}}
+function challengeMetrics(){let d=getReplayData(),trades=Array.isArray(d.trades)?d.trades:[],wins=trades.filter(t=>t.result==="TP").length,net=trades.reduce((a,t)=>a+tradeR(t),0),learn=Array.isArray(d.progress?.lessons)?d.progress.lessons.filter(Boolean).length:0,strategies=Array.isArray(d.strategies)?d.strategies.length:0,b=readPracticeStats("replayx-practice-bos"),f=readPracticeStats("replayx-practice-fvg"),l=readPracticeStats("replayx-practice-liquidity"),attempts=b.attempts+f.attempts+l.attempts,correct=b.correct+f.correct+l.correct,accuracy=attempts?Math.round(correct/attempts*100):0;return{trades:trades.length,wins,net,learn,strategies,attempts,correct,accuracy}}
+const CHALLENGES=[
+{id:"first_trade",icon:"01",name:"First Execution",desc:"Заверши первую сделку в Market Replay.",xp:50,target:1,value:m=>m.trades,label:(v,t)=>`${v} / ${t} trade`},
+{id:"five_trades",icon:"5X",name:"Replay Rookie",desc:"Заверши 5 исторических сделок.",xp:100,target:5,value:m=>m.trades,label:(v,t)=>`${v} / ${t} trades`},
+{id:"three_wins",icon:"TP",name:"Three Targets",desc:"Закрой 3 Replay-сделки по Take Profit.",xp:120,target:3,value:m=>m.wins,label:(v,t)=>`${v} / ${t} TP`},
+{id:"practice10",icon:"10",name:"Practice Grinder",desc:"Выполни 10 заданий BOS, FVG или Liquidity Sweep.",xp:120,target:10,value:m=>m.attempts,label:(v,t)=>`${v} / ${t} attempts`},
+{id:"accuracy70",icon:"70",name:"Market Reader",desc:"Достигни точности Practice 70% после минимум 10 попыток.",xp:180,target:70,value:m=>m.attempts>=10?m.accuracy:0,label:(v,t,m)=>m.attempts<10?`${m.attempts} / 10 attempts required`:`${m.accuracy}% / ${t}% accuracy`},
+{id:"academy",icon:"6/6",name:"Academy Complete",desc:"Заверши все 6 уроков Learn.",xp:200,target:6,value:m=>m.learn,label:(v,t)=>`${v} / ${t} lessons`},
+{id:"architect",icon:"SB",name:"Strategy Architect",desc:"Создай хотя бы одну стратегию в Strategy Builder.",xp:100,target:1,value:m=>m.strategies,label:(v,t)=>`${v} / ${t} strategy`},
+{id:"netr",icon:"+5R",name:"Positive Edge",desc:"Достигни суммарного результата +5R в Market Replay.",xp:250,target:5,value:m=>Math.max(0,m.net),label:(v,t,m)=>`${m.net>=0?"+":""}${m.net.toFixed(2)}R / +${t}R`}
+];
+function renderChallenges(){let grid=document.getElementById("challengeGrid");if(!grid)return;let m=challengeMetrics(),completed=0,xp=0;grid.innerHTML=CHALLENGES.map(ch=>{let raw=Number(ch.value(m))||0,v=Math.max(0,raw),done=v>=ch.target,pct=Math.max(0,Math.min(100,v/ch.target*100));if(done){completed++;xp+=ch.xp}return `<div class="card challenge-card ${done?"completed":""}"><div class="challenge-head"><div class="challenge-icon">${ch.icon}</div><div><div class="challenge-name">${ch.name}</div><div class="challenge-xp">+${ch.xp} XP</div></div></div><div class="challenge-desc">${ch.desc}</div><div class="progress-wrap"><div class="progress-head"><span class="challenge-progress-text">${ch.label(v,ch.target,m)}</span><span>${done?"DONE":Math.round(pct)+"%"}</span></div><div class="progress"><div class="progress-fill" style="width:${pct}%"></div></div></div></div>`}).join("");let totalXP=CHALLENGES.reduce((a,c)=>a+c.xp,0),totalPct=Math.round(completed/CHALLENGES.length*100),level=Math.floor(xp/250)+1,next=level*250;document.getElementById("challengeLevel").textContent=level;document.getElementById("challengeXP").textContent=xp;document.getElementById("challengeNextXP").textContent=xp>=totalXP?"All current XP collected":`Next level: ${next} XP`;document.getElementById("challengeCompleted").textContent=`${completed} / ${CHALLENGES.length}`;document.getElementById("challengeTotalPct").textContent=totalPct+"%";document.getElementById("challengeTotalFill").style.width=totalPct+"%"}
+
 loadApp();
 requestAnimationFrame(()=>{
 initReplayChart();
@@ -959,6 +982,7 @@ initPractice();
 initFvgPractice();
 initLiquidityPractice();
 initStrategyBuilder();
+renderChallenges();
 const saved=localStorage.getItem("replayx-page");
 if(saved==="replay")requestAnimationFrame(resizeReplayChart);
 });
